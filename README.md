@@ -37,7 +37,7 @@
 ## Install
 
 ```bash
-$ npm install html-to-latex -D
+$ npm install html-to-latex
 ```
 
 ## Usage
