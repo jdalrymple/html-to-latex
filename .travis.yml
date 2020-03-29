@@ -1,0 +1,20 @@
+version: ~> 1.0
+
+language: node_js
+
+node_js:
+  - node
+
+jobs:
+  include:
+    - stage: lint
+      script: 
+        - yarn lint
+
+    - stage: build
+      script:
+      - yarn build
+
+    - stage: test
+      script:
+        - yarn test && yarn codecov

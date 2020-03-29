@@ -1,0 +1,29 @@
+env:
+  node: true
+  jest/globals: true
+
+extends:
+  - airbnb-base
+  - plugin:prettier/recommended
+  - plugin:jest/recommended
+
+ignorePatterns:
+  - node_modules/
+  - dist/
+  - '**/rollup.config.js'
+
+plugins:
+  - import
+
+rules:
+  import/prefer-default-export: off
+  import/extensions:
+    - error
+    - never
+    - json: always
+
+settings:
+  import/resolver:
+    node:
+      extensions:
+        - .js

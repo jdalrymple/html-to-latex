@@ -1,0 +1,50 @@
+{
+  "name": "html-to-latex",
+  "description": "convert html to latex",
+  "version": "0.0.1",
+  "dependencies": {
+    "entities": "^2.0.0",
+    "fs-extra": "^8.1.0",
+    "got": "^10.6.0",
+    "parse5": "^5.1.1",
+    "sywac": "^1.2.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "babel-jest": "^25.1.0",
+    "codecov": "^3.6.5",
+    "cz-conventional-changelog": "3.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-jest": "^23.6.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^25.1.0",
+    "prettier": "^1.19.1",
+    "rollup": "^1.31.0",
+    "rollup-plugin-preserve-shebangs": "^0.1.2",
+    "tempy": "^0.4.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "bin": {
+    "html2latex": "dist/bin.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rollup -c",
+    "commit": "npx git-cz",
+    "test": "jest test",
+    "lint": "prettier --check '{src,test}/**/*.js' && eslint '{src,test}/**/*/*.js'",
+    "lint:fix": "prettier --write '{src,test}/**/*.js' && eslint '{src,test}/**/*/*.js' --fix"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}

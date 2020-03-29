@@ -1,0 +1,19 @@
+engines:
+  shellcheck:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+        javascript:
+          mass_threshold: 70
+          count_threshold: 3
+
+ratings:
+  paths:
+    - '**.js'
+
+exclude_paths:
+  - node_modules
+  - coverage
+  - dist
