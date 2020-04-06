@@ -6,6 +6,7 @@ import { stream } from 'got';
 import { pipeline as pipelineSync } from 'stream';
 import { promisify } from 'util';
 import { createWriteStream } from 'fs';
+import { nanoid } from 'nanoid';
 import {
   documentClass,
   usePackages,
@@ -43,9 +44,9 @@ export async function exportFile(text, filename, path = process.cwd) {
   return outputFile(resolve(path, `${filename}.tex`), text);
 }
 
-async function convertImage(node, { compilationDir } = {}) {
-  const origPath = node.attrs.find(a => a.name === 'src').value;
-  const base = basename(origPath);
+async function convertImage(node, { compilationDir, autoGenImageNames = true } = {}) {
+  const origPath = node.attrs.find(({ name }) => name === 'src').value;
+  const base = autoGenImageNames ? `${nanoid()}.jpg` : basename(origPath);
   const imagesDir = resolve(compilationDir, 'images');
   const localPath = resolve(imagesDir, base);
   const localLatexPath = join('images', base);
@@ -140,6 +141,7 @@ async function convertHeading(node, opts) {
 async function convert(
   nodes,
   {
+    autoGenImageNames = true,
     includeDocumentWrapper = false,
     docClass = 'article',
     includePkgs = [],
@@ -154,6 +156,7 @@ async function convert(
   const opts = {
     compilationDir,
     ignoreBreaks,
+    autoGenImageNames,
   };
 
   if (includeDocumentWrapper) {

@@ -1,7 +1,10 @@
 import { directory } from 'tempy';
 import { pathExists, remove, readFile } from 'fs-extra';
 import { resolve } from 'path';
+import { nanoid } from 'nanoid';
 import { convertText, exportFile } from '../../src/convert';
+
+jest.mock('nanoid');
 
 describe('exportFile', () => {
   let dir;
@@ -170,16 +173,18 @@ describe('convertText', () => {
   describe('Converting img tags', () => {
     it('should convert simple img tag', async () => {
       const html = `<img src="image.png"/>`;
-      const tex = await convertText(html);
+      const tex = await convertText(html, { autoGenImageNames: false });
 
       expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n');
     });
 
     it('should convert wrapped img tag', async () => {
+      nanoid.mockReturnValueOnce('image');
+
       const html = `<p><img src="image.png"/></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n');
+      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.jpg}\n\\end{center}\n');
     });
   });
 
