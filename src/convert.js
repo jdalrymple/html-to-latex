@@ -66,19 +66,36 @@ async function convertImage(node, { compilationDir } = {}) {
   return image(localLatexPath);
 }
 
-async function convertRichText({ childNodes }, opts) {
+async function convertPlainText({ value, childNodes = [] }, opts) {
   const text = [];
+
+  if (value) return decodeHTML(value.replace(/(\n|\t|\r)/g, ''));
 
   childNodes.forEach(async n => {
     switch (n.nodeName) {
-      case '#text':
-        text.push(decodeHTML(n.value.replace(/(\n|\t|\r)/g, '')));
-        break;
       case 'img':
         text.push(convertImage(n, opts));
         break;
-      default:
+      case 'b':
+      case 'strong':
+        text.push(convertPlainText(n, opts).then(t => bold(t)));
+        break;
+      case 'i':
+        text.push(convertPlainText(n, opts).then(t => italic(t)));
+        break;
+      case 'u':
+        text.push(convertPlainText(n, opts).then(t => underline(t)));
+        break;
+      case 'br':
+        text.push(convertPlainText(n, opts).then(t => (opts.ignoreBreaks ? sp(t) : linebreak(t))));
+        break;
+      case 'span':
         text.push(convertPlainText(n, opts));
+        break;
+      case '#text':
+        text.push(decodeHTML(n.value.replace(/(\n|\t|\r)/g, '')));
+        break;
+      default:
     }
   });
 
@@ -87,43 +104,28 @@ async function convertRichText({ childNodes }, opts) {
   return converted.join('');
 }
 
-async function convertPlainText(node, opts) {
-  const text = await convertRichText(node, opts);
-
-  switch (node.nodeName) {
-    case 'b':
-    case 'strong':
-      return bold(text);
-    case 'i':
-      return italic(text);
-    case 'u':
-      return underline(text);
-    case 'br':
-      if (opts.ignoreBreaks) return sp(text);
-      return linebreak(text);
-    default:
-      return text;
-  }
-}
-
 async function convertUnorderedLists({ childNodes }, opts) {
   const filtered = await childNodes.filter(({ nodeName }) => nodeName === 'li');
-  const texts = await Promise.all(filtered.map(f => convertRichText(f, opts)));
-  const listItems = texts.map(t => item(t));
+  const texts = await Promise.all(
+    filtered.map(f => convert([f], { ...opts, includeDocumentWrapper: false })),
+  );
+  const listItems = texts.map(item);
 
   return itemize(listItems.join('\n'));
 }
 
 async function convertOrderedLists({ childNodes }, opts) {
   const filtered = await childNodes.filter(({ nodeName }) => nodeName === 'li');
-  const texts = await Promise.all(filtered.map(f => convertRichText(f, opts)));
-  const listItems = texts.map(t => item(t));
+  const texts = await Promise.all(
+    filtered.map(f => convert([f], { ...opts, includeDocumentWrapper: false })),
+  );
+  const listItems = texts.map(item);
 
   return enumerate(listItems.join('\n'));
 }
 
 async function convertHeading(node, opts) {
-  const text = await convertRichText(node, opts);
+  const text = await convertPlainText(node, opts);
 
   switch (node.nodeName) {
     case 'h1':
@@ -176,16 +178,17 @@ async function convert(
         doc.push(convertOrderedLists(n, opts));
         break;
       case 'img':
-        doc.push(convertImage(n, opts).then(i => nls(i)));
-        break;
-      case 'p':
-        doc.push(convertRichText(n, opts).then(t => nls(t)));
+        doc.push(convertImage(n, opts).then(nls));
         break;
       case 'hr':
         doc.push(divider);
         break;
       case 'div':
       case 'section':
+      case 'body':
+      case 'html':
+      case 'header':
+      case 'aside':
         doc.push(
           convert(n.childNodes, {
             ...opts,
@@ -193,7 +196,11 @@ async function convert(
           }),
         );
         break;
+      case 'p':
+        doc.push(convertPlainText(n, opts).then(nls));
+        break;
       default:
+        doc.push(convertPlainText(n, opts));
     }
   });
 
@@ -201,7 +208,7 @@ async function convert(
 
   const converted = await Promise.all(doc);
 
-  return converted.join('\n');
+  return converted.filter(Boolean).join('\n');
 }
 
 export async function convertText(data, options = {}) {

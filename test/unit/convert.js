@@ -29,7 +29,7 @@ describe('convertText', () => {
       const html = `<body></body>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe('\\documentclass{article}\n\n\\begin{document}\n\n\\end{document}');
+      expect(tex).toBe('\\documentclass{article}\n\n\\begin{document}\n\n\n\\end{document}');
     });
 
     it('should insert the basic document heading with author', async () => {
@@ -37,7 +37,7 @@ describe('convertText', () => {
       const tex = await convertText(html, { author: 'Takashi' });
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\author{Takashi}\n\\begin{document}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\author{Takashi}\n\n\\begin{document}\n\n\n\\end{document}',
       );
     });
 
@@ -46,7 +46,7 @@ describe('convertText', () => {
       const tex = await convertText(html, { title: 'Altered Carbon' });
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\title{Altered Carbon}\n\\begin{document}\n\\maketitle\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\title{Altered Carbon}\n\n\\begin{document}\n\n\\maketitle\n\n\n\\end{document}',
       );
     });
 
@@ -55,7 +55,7 @@ describe('convertText', () => {
       const tex = await convertText(html, { includeDate: true });
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\date{\\today}\n\\begin{document}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\date{\\today}\n\n\\begin{document}\n\n\n\\end{document}',
       );
     });
   });
@@ -66,7 +66,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textbf{Text}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textbf{Text}\n\n\n\\end{document}',
       );
     });
 
@@ -75,7 +75,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textbf{Text}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textbf{Text}\n\n\n\\end{document}',
       );
     });
 
@@ -84,7 +84,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textit{Text}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textit{Text}\n\n\n\\end{document}',
       );
     });
 
@@ -93,7 +93,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\underline{Text}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\underline{Text}\n\n\n\\end{document}',
       );
     });
 
@@ -102,7 +102,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled Text\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nStyled Text\n\n\n\\end{document}',
       );
     });
 
@@ -111,7 +111,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled Text\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nStyled Text\n\n\n\\end{document}',
       );
     });
 
@@ -120,7 +120,7 @@ describe('convertText', () => {
       const tex = await convertText(html, { ignoreBreaks: false });
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled\\\\\nText\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nStyled\\\\\nText\n\n\n\\end{document}',
       );
     });
   });
@@ -131,7 +131,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading}}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading}}\n\n\n\\end{document}',
       );
     });
 
@@ -140,7 +140,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\subsection*{Heading}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\n\\subsection*{Heading}\n\n\n\\end{document}',
       );
     });
 
@@ -149,7 +149,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\subsubsection*{Heading}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\n\\subsubsection*{Heading}\n\n\n\\end{document}',
       );
     });
 
@@ -158,7 +158,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading's}}\n\n\\end{document}",
+        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading's}}\n\n\n\\end{document}",
       );
     });
 
@@ -167,7 +167,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading's}}\n\n\\end{document}",
+        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading's}}\n\n\n\\end{document}",
       );
     });
 
@@ -176,7 +176,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{\\underline{\\textbf{Newton's Laws of Motion}}}}\n\n\\end{document}",
+        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{\\underline{\\textbf{Newton's Laws of Motion}}}}\n\n\n\\end{document}",
       );
     });
   });
@@ -187,7 +187,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nText\n\n\\hrule\n\nMore Text\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\nText\n\n\\hrule\n\nMore Text\n\n\n\\end{document}',
       );
     });
   });
@@ -198,7 +198,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n\n\n\\end{document}',
       );
     });
 
@@ -207,7 +207,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n\n\n\\end{document}',
       );
     });
   });
@@ -218,7 +218,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{itemize}\n\t\\item Angle reaction\n\\end{itemize}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{itemize}\n\t\\item Angle reaction\n\\end{itemize}\n\n\n\\end{document}',
       );
     });
 
@@ -227,7 +227,7 @@ describe('convertText', () => {
       const tex = await convertText(html);
 
       expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{enumerate}\n\t\\item Angle reaction\n\\end{enumerate}\n\n\\end{document}',
+        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{enumerate}\n\t\\item Angle reaction\n\\end{enumerate}\n\n\n\\end{document}',
       );
     });
   });
@@ -246,6 +246,7 @@ describe('convertText', () => {
         '\\subsection*{\\textbf{Concept of Forces}}',
         '',
         'Some types of forces may be (i) Contact forces, (ii) Non-contact forces \\textbf{Contact forces} involve physical contact between two objects.',
+        '',
         '',
         '\\end{document}',
       ];
@@ -266,6 +267,7 @@ describe('convertText', () => {
         '\\subsection*{\\textbf{Concept of Forces}}',
         '',
         'Some types of forces may be (i) Contact forces, (ii) Non-contact forces \\textbf{Contact forces} involve physical contact between two objects.',
+        '',
         '',
         '\\end{document}',
       ];

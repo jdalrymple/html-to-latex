@@ -17,9 +17,6 @@
     <img src="https://david-dm.org/jdalrymple/html-to-latex/dev-status.svg.svg" alt="Dev Dependency Status" />
   </a>
   <img src="https://flat.badgen.net/dependabot/jdalrymple/html-to-latex?icon=dependabot" alt="Dependabot Badge" />
-<!--   <a href="https://github.com/semantic-release/semantic-release">
-    <img src="https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg" alt="Semantic Release">
-  </a> -->
   <a href="http://commitizen.github.io/cz-cli/">
     <img src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg" alt="Commitizen">
   </a>

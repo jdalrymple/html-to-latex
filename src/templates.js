@@ -34,12 +34,13 @@ export function beginDocument({ title, includeDate = false, author } = {}) {
   if (author) beginningText.push(`\\author{${author}}`);
   if (includeDate) beginningText.push(`\\date{\\today}`);
 
-  beginningText.push(`\\begin{document}`);
+  if (beginningText.length) beginningText.push(nlp(`\\begin{document}`));
+  else beginningText.push(`\\begin{document}`);
 
-  if (title) beginningText.push('\\maketitle');
+  if (title) beginningText.push(nlp('\\maketitle'));
 
   return nls(beginningText.join('\n'));
 }
 
-export const endDocument = '\\end{document}';
+export const endDocument = nlp('\\end{document}');
 export const documentClass = className => nls(`\\documentclass{${className}}`);
