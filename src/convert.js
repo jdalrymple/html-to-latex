@@ -46,13 +46,7 @@ export async function exportFile(text, filename, path = process.cwd) {
 
 async function convertImage(
   node,
-  {
-    compilationDir,
-    autoGenImageNames = true,
-    maxImageWidth,
-    maxImageHeight,
-    keepImageAspectRatio,
-  } = {},
+  { compilationDir, autoGenImageNames = true, imageWidth, imageHeight, keepImageAspectRatio } = {},
 ) {
   const imagesDir = resolve(compilationDir, 'images');
   const origPath = node.attrs.find(({ name }) => name === 'src').value;
@@ -74,7 +68,7 @@ async function convertImage(
     }
   }
 
-  return image(localLatexPath, maxImageWidth, maxImageHeight, keepImageAspectRatio);
+  return image(localLatexPath, imageWidth, imageHeight, keepImageAspectRatio);
 }
 
 async function convertPlainText({ value, childNodes = [] }, opts) {
@@ -159,8 +153,8 @@ async function convert(
     includePkgs = [],
     compilationDir = process.cwd(),
     ignoreBreaks = true,
-    maxImageWidth,
-    maxImageHeight,
+    imageWidth,
+    imageHeight,
     keepImageAspectRatio,
     title,
     includeDate,
@@ -172,8 +166,8 @@ async function convert(
     compilationDir,
     ignoreBreaks,
     autoGenImageNames,
-    maxImageWidth,
-    maxImageHeight,
+    imageWidth,
+    imageHeight,
     keepImageAspectRatio,
   };
 

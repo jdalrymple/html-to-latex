@@ -95,6 +95,34 @@ Default: `process.cwd`
 
 If any images need to be downloaded for the latex compilation, they will be places in a 'images' subdirectory inside this directory.
 
+###### autoGenImageNames
+
+Type: `boolean`
+Default: `true`
+
+To avoid any weird file names, image files that are downloaded are automatically given a random Id with the extension of the original file. This can be turned off by passing a `false` value.
+
+###### imageWidth
+
+Type: `string`
+Default: `undefined`
+
+Allows you to set a image width. This would be in the form normally accepted by latex such as: `2cm`
+
+###### imageHeight
+
+Type: `string`
+Default: `undefined`
+
+Allows you to set a image height. This would be in the form normally accepted by latex such as: `2cm`
+
+###### keepImageAspectRatio
+
+Type: `boolean`
+Default: `undefined`
+
+Allows you to maintain the aspect ratio of the image. This also requires either the image width property or image height property to be set.
+
 ###### includeDocumentWrapper
 
 Type: `boolean`

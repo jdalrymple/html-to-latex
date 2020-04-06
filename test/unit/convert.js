@@ -198,7 +198,7 @@ describe('convertText', () => {
 
     it('should add width restrictions when given', async () => {
       const html = `<img src="image.png"/>`;
-      const tex = await convertText(html, { autoGenImageNames: false, maxImageWidth: '2cm' });
+      const tex = await convertText(html, { autoGenImageNames: false, imageWidth: '2cm' });
 
       expect(tex).toBe(
         '\\begin{center}\n\t\\includegraphics[width=2cm]{images/image.png}\n\\end{center}\n',
@@ -207,7 +207,7 @@ describe('convertText', () => {
 
     it('should add height restrictions when given', async () => {
       const html = `<img src="image.png"/>`;
-      const tex = await convertText(html, { autoGenImageNames: false, maxImageHeight: '2cm' });
+      const tex = await convertText(html, { autoGenImageNames: false, imageHeight: '2cm' });
 
       expect(tex).toBe(
         '\\begin{center}\n\t\\includegraphics[height=2cm]{images/image.png}\n\\end{center}\n',
@@ -218,7 +218,7 @@ describe('convertText', () => {
       const html = `<img src="image.png"/>`;
       const tex = await convertText(html, {
         autoGenImageNames: false,
-        maxImageHeight: '2cm',
+        imageHeight: '2cm',
         keepImageAspectRatio: true,
       });
 

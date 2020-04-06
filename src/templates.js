@@ -21,13 +21,13 @@ export const linebreak = (text) => `\\\\\n${text}`;
 export const enumerate = (text) => nls(`\\begin{enumerate}\n${text}\n\\end{enumerate}`);
 export const itemize = (text) => nls(`\\begin{itemize}\n${text}\n\\end{itemize}`);
 export const item = (text) => `\t\\item ${text}`;
-export function image(path, maxWidth, maxHeight, keepRatio) {
+export function image(path, width, height, keepRatio) {
   const line = ['\\includegraphics'];
   const options = [];
 
-  if (maxWidth) options.push(`width=${maxWidth}`);
-  if (maxHeight) options.push(`height=${maxHeight}`);
-  if ((maxWidth || maxHeight) && keepRatio) options.push('keepaspectratio');
+  if (width) options.push(`width=${width}`);
+  if (height) options.push(`height=${height}`);
+  if ((width || height) && keepRatio) options.push('keepaspectratio');
   if (options.length) line.push(`[${options.join(',')}]`);
 
   line.push(`{${normalize(path)}}`);
