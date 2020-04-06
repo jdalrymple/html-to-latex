@@ -1,7 +1,7 @@
 import { parseFragment } from 'parse5';
 import { decodeHTML } from 'entities';
 import { outputFile, readFile, pathExists, ensureDir } from 'fs-extra';
-import { resolve, basename, join, dirname } from 'path';
+import { resolve, basename, join, dirname, extname } from 'path';
 import { stream } from 'got';
 import { pipeline as pipelineSync } from 'stream';
 import { promisify } from 'util';
@@ -45,9 +45,10 @@ export async function exportFile(text, filename, path = process.cwd) {
 }
 
 async function convertImage(node, { compilationDir, autoGenImageNames = true } = {}) {
-  const origPath = node.attrs.find(({ name }) => name === 'src').value;
-  const base = autoGenImageNames ? `${nanoid()}.jpg` : basename(origPath);
   const imagesDir = resolve(compilationDir, 'images');
+  const origPath = node.attrs.find(({ name }) => name === 'src').value;
+  const ext = extname(origPath) || '.jpg';
+  const base = autoGenImageNames ? `${nanoid()}${ext}` : basename(origPath);
   const localPath = resolve(imagesDir, base);
   const localLatexPath = join('images', base);
   const exists = await pathExists(localPath);
@@ -72,23 +73,25 @@ async function convertPlainText({ value, childNodes = [] }, opts) {
 
   if (value) return decodeHTML(value.replace(/(\n|\t|\r)/g, ''));
 
-  childNodes.forEach(async n => {
+  childNodes.forEach(async (n) => {
     switch (n.nodeName) {
       case 'img':
         text.push(convertImage(n, opts));
         break;
       case 'b':
       case 'strong':
-        text.push(convertPlainText(n, opts).then(t => bold(t)));
+        text.push(convertPlainText(n, opts).then((t) => bold(t)));
         break;
       case 'i':
-        text.push(convertPlainText(n, opts).then(t => italic(t)));
+        text.push(convertPlainText(n, opts).then((t) => italic(t)));
         break;
       case 'u':
-        text.push(convertPlainText(n, opts).then(t => underline(t)));
+        text.push(convertPlainText(n, opts).then((t) => underline(t)));
         break;
       case 'br':
-        text.push(convertPlainText(n, opts).then(t => (opts.ignoreBreaks ? sp(t) : linebreak(t))));
+        text.push(
+          convertPlainText(n, opts).then((t) => (opts.ignoreBreaks ? sp(t) : linebreak(t))),
+        );
         break;
       case 'span':
         text.push(convertPlainText(n, opts));
@@ -108,7 +111,7 @@ async function convertPlainText({ value, childNodes = [] }, opts) {
 async function convertUnorderedLists({ childNodes }, opts) {
   const filtered = await childNodes.filter(({ nodeName }) => nodeName === 'li');
   const texts = await Promise.all(
-    filtered.map(f => convert([f], { ...opts, includeDocumentWrapper: false })),
+    filtered.map((f) => convert([f], { ...opts, includeDocumentWrapper: false })),
   );
   const listItems = texts.map(item);
 
@@ -118,7 +121,7 @@ async function convertUnorderedLists({ childNodes }, opts) {
 async function convertOrderedLists({ childNodes }, opts) {
   const filtered = await childNodes.filter(({ nodeName }) => nodeName === 'li');
   const texts = await Promise.all(
-    filtered.map(f => convert([f], { ...opts, includeDocumentWrapper: false })),
+    filtered.map((f) => convert([f], { ...opts, includeDocumentWrapper: false })),
   );
   const listItems = texts.map(item);
 
@@ -167,7 +170,7 @@ async function convert(
     doc.push(beginDocument({ title, includeDate, author }));
   }
 
-  nodes.forEach(async n => {
+  nodes.forEach(async (n) => {
     switch (n.nodeName) {
       case 'h1':
       case 'h2':

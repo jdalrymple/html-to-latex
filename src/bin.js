@@ -12,7 +12,7 @@ program
   .epilogue('Copyright 2020')
   .command('convert-file', {
     desc: 'Convert HTML to Latex',
-    setup: args => {
+    setup: (args) => {
       args
         .positional('[--ifp] <input-file>', {
           type: 'string',
@@ -29,7 +29,7 @@ program
           defaultValue: true,
         });
     },
-    run: async args => {
+    run: async (args) => {
       const filename = basename(args.ifp, extname(args.ifp));
       const outputFileName = args.ow === true ? filename : `processed-${filename}`;
 

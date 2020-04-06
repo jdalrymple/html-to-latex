@@ -179,12 +179,21 @@ describe('convertText', () => {
     });
 
     it('should convert wrapped img tag', async () => {
-      nanoid.mockReturnValueOnce('image');
+      nanoid.mockReturnValueOnce('image2');
 
       const html = `<p><img src="image.png"/></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.jpg}\n\\end{center}\n');
+      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image2.png}\n\\end{center}\n');
+    });
+
+    it('should default to a jpg extension when converting img tag with a image url without a extension', async () => {
+      nanoid.mockReturnValueOnce('image2');
+
+      const html = `<p><img src="image"/></p>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image2.jpg}\n\\end{center}\n');
     });
   });
 
