@@ -1,10 +1,10 @@
 import { directory } from 'tempy';
 import { pathExists, remove, readFile } from 'fs-extra';
 import { resolve } from 'path';
-import { nanoid } from 'nanoid';
+import { generate } from 'shortid';
 import { convertText, exportFile } from '../../src/convert';
 
-jest.mock('nanoid');
+jest.mock('shortid');
 
 describe('exportFile', () => {
   let dir;
@@ -179,7 +179,7 @@ describe('convertText', () => {
     });
 
     it('should convert wrapped img tag', async () => {
-      nanoid.mockReturnValueOnce('image2');
+      generate.mockReturnValueOnce('image2');
 
       const html = `<p><img src="image.png"/></p>`;
       const tex = await convertText(html);
@@ -188,7 +188,7 @@ describe('convertText', () => {
     });
 
     it('should default to a jpg extension when converting img tag with a image url without a extension', async () => {
-      nanoid.mockReturnValueOnce('image2');
+      generate.mockReturnValueOnce('image2');
 
       const html = `<p><img src="image"/></p>`;
       const tex = await convertText(html);

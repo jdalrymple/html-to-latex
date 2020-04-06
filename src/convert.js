@@ -6,7 +6,7 @@ import { stream } from 'got';
 import { pipeline as pipelineSync } from 'stream';
 import { promisify } from 'util';
 import { createWriteStream } from 'fs';
-import { nanoid } from 'nanoid';
+import { generate as generateId } from 'shortid';
 import {
   documentClass,
   usePackages,
@@ -48,7 +48,7 @@ async function convertImage(node, { compilationDir, autoGenImageNames = true } =
   const imagesDir = resolve(compilationDir, 'images');
   const origPath = node.attrs.find(({ name }) => name === 'src').value;
   const ext = extname(origPath) || '.jpg';
-  const base = autoGenImageNames ? `${nanoid()}${ext}` : basename(origPath);
+  const base = autoGenImageNames ? `${generateId()}${ext}` : basename(origPath);
   const localPath = resolve(imagesDir, base);
   const localLatexPath = join('images', base);
   const exists = await pathExists(localPath);
