@@ -44,7 +44,16 @@ export async function exportFile(text, filename, path = process.cwd) {
   return outputFile(resolve(path, `${filename}.tex`), text);
 }
 
-async function convertImage(node, { compilationDir, autoGenImageNames = true } = {}) {
+async function convertImage(
+  node,
+  {
+    compilationDir,
+    autoGenImageNames = true,
+    maxImageWidth,
+    maxImageHeight,
+    keepImageAspectRatio,
+  } = {},
+) {
   const imagesDir = resolve(compilationDir, 'images');
   const origPath = node.attrs.find(({ name }) => name === 'src').value;
   const ext = extname(origPath) || '.jpg';
@@ -65,7 +74,7 @@ async function convertImage(node, { compilationDir, autoGenImageNames = true } =
     }
   }
 
-  return image(localLatexPath);
+  return image(localLatexPath, maxImageWidth, maxImageHeight, keepImageAspectRatio);
 }
 
 async function convertPlainText({ value, childNodes = [] }, opts) {
@@ -150,6 +159,9 @@ async function convert(
     includePkgs = [],
     compilationDir = process.cwd(),
     ignoreBreaks = true,
+    maxImageWidth,
+    maxImageHeight,
+    keepImageAspectRatio,
     title,
     includeDate,
     author,
@@ -160,6 +172,9 @@ async function convert(
     compilationDir,
     ignoreBreaks,
     autoGenImageNames,
+    maxImageWidth,
+    maxImageHeight,
+    keepImageAspectRatio,
   };
 
   if (includeDocumentWrapper) {

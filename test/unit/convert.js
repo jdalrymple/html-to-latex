@@ -195,6 +195,44 @@ describe('convertText', () => {
 
       expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image2.jpg}\n\\end{center}\n');
     });
+
+    it('should add width restrictions when given', async () => {
+      const html = `<img src="image.png"/>`;
+      const tex = await convertText(html, { autoGenImageNames: false, maxImageWidth: '2cm' });
+
+      expect(tex).toBe(
+        '\\begin{center}\n\t\\includegraphics[width=2cm]{images/image.png}\n\\end{center}\n',
+      );
+    });
+
+    it('should add height restrictions when given', async () => {
+      const html = `<img src="image.png"/>`;
+      const tex = await convertText(html, { autoGenImageNames: false, maxImageHeight: '2cm' });
+
+      expect(tex).toBe(
+        '\\begin{center}\n\t\\includegraphics[height=2cm]{images/image.png}\n\\end{center}\n',
+      );
+    });
+
+    it('should keep aspect ratio when given and width or height are restricted', async () => {
+      const html = `<img src="image.png"/>`;
+      const tex = await convertText(html, {
+        autoGenImageNames: false,
+        maxImageHeight: '2cm',
+        keepImageAspectRatio: true,
+      });
+
+      expect(tex).toBe(
+        '\\begin{center}\n\t\\includegraphics[height=2cm,keepaspectratio]{images/image.png}\n\\end{center}\n',
+      );
+    });
+
+    it('should ignore aspect ratio when given if width or height are not restricted', async () => {
+      const html = `<img src="image.png"/>`;
+      const tex = await convertText(html, { autoGenImageNames: false, keepImageAspectRatio: true });
+
+      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n');
+    });
   });
 
   describe('Converting list tags', () => {

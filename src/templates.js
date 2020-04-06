@@ -21,7 +21,19 @@ export const linebreak = (text) => `\\\\\n${text}`;
 export const enumerate = (text) => nls(`\\begin{enumerate}\n${text}\n\\end{enumerate}`);
 export const itemize = (text) => nls(`\\begin{itemize}\n${text}\n\\end{itemize}`);
 export const item = (text) => `\t\\item ${text}`;
-export const image = (path) => center(`\\includegraphics{${normalize(path)}}`);
+export function image(path, maxWidth, maxHeight, keepRatio) {
+  const line = ['\\includegraphics'];
+  const options = [];
+
+  if (maxWidth) options.push(`width=${maxWidth}`);
+  if (maxHeight) options.push(`height=${maxHeight}`);
+  if ((maxWidth || maxHeight) && keepRatio) options.push('keepaspectratio');
+  if (options.length) line.push(`[${options.join(',')}]`);
+
+  line.push(`{${normalize(path)}}`);
+
+  return center(line.join(''));
+}
 
 export function usePackages(packageNames) {
   return nls(packageNames.map((n) => `\\usepackage{${n}}`).join('\n'));
