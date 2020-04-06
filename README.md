@@ -98,7 +98,7 @@ If any images need to be downloaded for the latex compilation, they will be plac
 ###### includeDocumentWrapper
 
 Type: `boolean`
-Default: `true`
+Default: `false`
 
 Adds a latex document wrapper around the converted text. This is required to have a valid latex file:
 

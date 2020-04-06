@@ -140,7 +140,7 @@ async function convertHeading(node, opts) {
 async function convert(
   nodes,
   {
-    includeDocumentWrapper = true,
+    includeDocumentWrapper = false,
     docClass = 'article',
     includePkgs = [],
     compilationDir = process.cwd(),

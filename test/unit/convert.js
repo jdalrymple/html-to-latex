@@ -27,14 +27,14 @@ describe('convertText', () => {
   describe('Document wrapper', () => {
     it('should insert the basic document wrapper and default document class of article', async () => {
       const html = `<body></body>`;
-      const tex = await convertText(html);
+      const tex = await convertText(html, { includeDocumentWrapper: true });
 
       expect(tex).toBe('\\documentclass{article}\n\n\\begin{document}\n\n\n\\end{document}');
     });
 
     it('should insert the basic document heading with author', async () => {
       const html = `<body></body>`;
-      const tex = await convertText(html, { author: 'Takashi' });
+      const tex = await convertText(html, { includeDocumentWrapper: true, author: 'Takashi' });
 
       expect(tex).toBe(
         '\\documentclass{article}\n\n\\author{Takashi}\n\n\\begin{document}\n\n\n\\end{document}',
@@ -43,7 +43,10 @@ describe('convertText', () => {
 
     it('should insert the basic document heading with title', async () => {
       const html = `<body></body>`;
-      const tex = await convertText(html, { title: 'Altered Carbon' });
+      const tex = await convertText(html, {
+        includeDocumentWrapper: true,
+        title: 'Altered Carbon',
+      });
 
       expect(tex).toBe(
         '\\documentclass{article}\n\n\\title{Altered Carbon}\n\n\\begin{document}\n\n\\maketitle\n\n\n\\end{document}',
@@ -52,7 +55,7 @@ describe('convertText', () => {
 
     it('should insert the basic document heading with date', async () => {
       const html = `<body></body>`;
-      const tex = await convertText(html, { includeDate: true });
+      const tex = await convertText(html, { includeDocumentWrapper: true, includeDate: true });
 
       expect(tex).toBe(
         '\\documentclass{article}\n\n\\date{\\today}\n\n\\begin{document}\n\n\n\\end{document}',
@@ -65,63 +68,49 @@ describe('convertText', () => {
       const html = `<p>Styled <b>Text</b></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textbf{Text}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Styled \\textbf{Text}\n');
     });
 
     it('should convert simple text tag with bold `strong` styling', async () => {
       const html = `<p>Styled <b>Text</b></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textbf{Text}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Styled \\textbf{Text}\n');
     });
 
     it('should convert simple text tag with italics styling', async () => {
       const html = `<p>Styled <i>Text</i></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\textit{Text}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Styled \\textit{Text}\n');
     });
 
     it('should convert simple text tag with underline styling', async () => {
       const html = `<p>Styled <u>Text</u></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled \\underline{Text}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Styled \\underline{Text}\n');
     });
 
     it('should convert text tag with span nesting', async () => {
       const html = `<p>Styled <span>Text</span></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled Text\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Styled Text\n');
     });
 
     it('should convert simple text with `br` tags. These will be ignored by default', async () => {
       const html = `<p>Styled<br/>Text</p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled Text\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Styled Text\n');
     });
 
     it('should convert simple text with `br` tags and the ignoreBreaks argument set to false', async () => {
       const html = `<p>Styled<br/>Text</p>`;
       const tex = await convertText(html, { ignoreBreaks: false });
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nStyled\\\\\nText\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Styled\\\\\nText\n');
     });
   });
 
@@ -130,54 +119,42 @@ describe('convertText', () => {
       const html = `<h1>Heading</h1>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading}}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('\\section*{\\centering{Heading}}\n');
     });
 
     it('should convert simple h2 tag without special chars', async () => {
       const html = `<h2>Heading</h2>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\subsection*{Heading}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('\\subsection*{Heading}\n');
     });
 
     it('should convert simple h3 tag without special chars', async () => {
       const html = `<h3>Heading</h3>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\subsubsection*{Heading}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('\\subsubsection*{Heading}\n');
     });
 
     it('should convert simple h tag with special chars', async () => {
       const html = `<h1>Heading&#39s</h1>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading's}}\n\n\n\\end{document}",
-      );
+      expect(tex).toBe("\\section*{\\centering{Heading's}}\n");
     });
 
     it('should convert h tag with embedded css', async () => {
       const html = `<h1 style="margin:0px">Heading's</h1>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{Heading's}}\n\n\n\\end{document}",
-      );
+      expect(tex).toBe("\\section*{\\centering{Heading's}}\n");
     });
 
     it('should convert h tag with embedded css and special characters', async () => {
       const html = await readFile(resolve(__dirname, '../test-cases/1/index.html'), 'utf-8');
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        "\\documentclass{article}\n\n\\begin{document}\n\n\\section*{\\centering{\\underline{\\textbf{Newton's Laws of Motion}}}}\n\n\n\\end{document}",
-      );
+      expect(tex).toBe("\\section*{\\centering{\\underline{\\textbf{Newton's Laws of Motion}}}}\n");
     });
   });
 
@@ -186,9 +163,7 @@ describe('convertText', () => {
       const html = `<p>Text</p><hr/><p>More Text</p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\nText\n\n\\hrule\n\nMore Text\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('Text\n\n\\hrule\n\nMore Text\n');
     });
   });
 
@@ -197,18 +172,14 @@ describe('convertText', () => {
       const html = `<img src="image.png"/>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n');
     });
 
     it('should convert wrapped img tag', async () => {
       const html = `<p><img src="image.png"/></p>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}\n');
     });
   });
 
@@ -217,18 +188,14 @@ describe('convertText', () => {
       const html = `<ul><li>Angle reaction</li></ul>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{itemize}\n\t\\item Angle reaction\n\\end{itemize}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('\\begin{itemize}\n\t\\item Angle reaction\n\\end{itemize}\n');
     });
 
     it('should convert simple ol list tag', async () => {
       const html = `<ol><li>Angle reaction</li></ol>`;
       const tex = await convertText(html);
 
-      expect(tex).toBe(
-        '\\documentclass{article}\n\n\\begin{document}\n\n\\begin{enumerate}\n\t\\item Angle reaction\n\\end{enumerate}\n\n\n\\end{document}',
-      );
+      expect(tex).toBe('\\begin{enumerate}\n\t\\item Angle reaction\n\\end{enumerate}\n');
     });
   });
 
@@ -237,18 +204,12 @@ describe('convertText', () => {
       const html = await readFile(resolve(__dirname, '../test-cases/2/index.html'), 'utf-8');
       const tex = await convertText(html);
       const text = [
-        '\\documentclass{article}',
-        '',
-        '\\begin{document}',
-        '',
         "\\section*{\\centering{\\underline{\\textbf{Newton's Laws of Motion}}}}",
         '',
         '\\subsection*{\\textbf{Concept of Forces}}',
         '',
         'Some types of forces may be (i) Contact forces, (ii) Non-contact forces \\textbf{Contact forces} involve physical contact between two objects.',
         '',
-        '',
-        '\\end{document}',
       ];
 
       expect(tex).toBe(text.join('\n'));
@@ -258,18 +219,12 @@ describe('convertText', () => {
       const html = await readFile(resolve(__dirname, '../test-cases/2/index.html'), 'utf-8');
       const tex = await convertText(html);
       const text = [
-        '\\documentclass{article}',
-        '',
-        '\\begin{document}',
-        '',
         "\\section*{\\centering{\\underline{\\textbf{Newton's Laws of Motion}}}}",
         '',
         '\\subsection*{\\textbf{Concept of Forces}}',
         '',
         'Some types of forces may be (i) Contact forces, (ii) Non-contact forces \\textbf{Contact forces} involve physical contact between two objects.',
         '',
-        '',
-        '\\end{document}',
       ];
 
       expect(tex).toBe(text.join('\n'));
