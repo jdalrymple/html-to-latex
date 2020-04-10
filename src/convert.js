@@ -64,7 +64,7 @@ async function convertImage(
 
       await pipeline(stream(url.href), createWriteStream(localPath));
     } catch (e) {
-      // Path isnt a url
+      console.debug(e);
     }
   }
 
