@@ -64,7 +64,7 @@ async function convertImage(
 
       await pipeline(stream(url.href), createWriteStream(localPath));
     } catch (e) {
-      console.debug(`URL: ${url.href}`);
+      console.debug(`URL: ${origPath}`);
       console.debug(e);
     }
   }
