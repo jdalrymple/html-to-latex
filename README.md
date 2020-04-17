@@ -86,7 +86,21 @@ Type: `object`
 Type: `boolean`
 Default: `true`
 
-Instead of replace `<br/>`  with //, ending the line, a simple space character is inserted instead.
+Instead of replacing `<br/>`  with //, ending the line, a simple space character is inserted instead.
+
+###### preferDollarSignEqs
+
+Type: `boolean`
+Default: `false`
+
+Replace `\(` and `\)`  with `$`.
+
+###### debug
+
+Type: `boolean`
+Default: `false`
+
+Prints error messages when they occur such as when an image cannot be found at the given url.
 
 ###### compilationDir
 

@@ -46,7 +46,14 @@ export async function exportFile(text, filename, path = process.cwd) {
 
 async function convertImage(
   node,
-  { compilationDir, autoGenImageNames = true, imageWidth, imageHeight, keepImageAspectRatio } = {},
+  {
+    compilationDir,
+    autoGenImageNames = true,
+    imageWidth,
+    imageHeight,
+    keepImageAspectRatio,
+    debug,
+  } = {},
 ) {
   const imagesDir = resolve(compilationDir, 'images');
   const origPath = node.attrs.find(({ name }) => name === 'src').value;
@@ -64,18 +71,28 @@ async function convertImage(
 
       await pipeline(stream(url.href), createWriteStream(localPath));
     } catch (e) {
-      console.debug(`URL: ${origPath}`);
-      console.debug(e);
+      if (debug) {
+        console.debug(`URL: ${origPath}`);
+        console.debug(e);
+      }
     }
   }
 
   return image(localLatexPath, imageWidth, imageHeight, keepImageAspectRatio);
 }
 
-async function convertPlainText({ value, childNodes = [] }, opts) {
+function convertPlainText(value, opts) {
+  const breakReplacement = opts.ignoreBreaks ? '' : '\\\\\n';
+  const cleanText = value.replace(/(\n|\r)/g, breakReplacement).replace(/\t/g, '');
+  const decodedText = decodeHTML(cleanText);
+
+  return opts.preferDollarSignEqs ? decodedText.replace(/\\\(|\\\)/g, '$') : decodedText;
+}
+
+async function convertRichTextt({ value, childNodes = [] }, opts) {
   const text = [];
 
-  if (value) return decodeHTML(value.replace(/(\n|\t|\r)/g, ''));
+  if (value) return convertPlainText(value, opts);
 
   childNodes.forEach(async (n) => {
     switch (n.nodeName) {
@@ -84,25 +101,26 @@ async function convertPlainText({ value, childNodes = [] }, opts) {
         break;
       case 'b':
       case 'strong':
-        text.push(convertPlainText(n, opts).then((t) => bold(t)));
+        text.push(convertRichTextt(n, opts).then((t) => bold(t)));
         break;
       case 'i':
-        text.push(convertPlainText(n, opts).then((t) => italic(t)));
+        text.push(convertRichTextt(n, opts).then((t) => italic(t)));
         break;
       case 'u':
-        text.push(convertPlainText(n, opts).then((t) => underline(t)));
+        text.push(convertRichTextt(n, opts).then((t) => underline(t)));
         break;
       case 'br':
         text.push(
-          convertPlainText(n, opts).then((t) => (opts.ignoreBreaks ? sp(t) : linebreak(t))),
+          convertRichTextt(n, opts).then((t) => (opts.ignoreBreaks ? sp(t) : linebreak(t))),
         );
         break;
       case 'span':
-        text.push(convertPlainText(n, opts));
+        text.push(convertRichTextt(n, opts));
         break;
-      case '#text':
-        text.push(decodeHTML(n.value.replace(/(\n|\t|\r)/g, '')));
+      case '#text': {
+        text.push(convertPlainText(n.value, opts));
         break;
+      }
       default:
     }
   });
@@ -133,7 +151,7 @@ async function convertOrderedLists({ childNodes }, opts) {
 }
 
 async function convertHeading(node, opts) {
-  const text = await convertPlainText(node, opts);
+  const text = await convertRichTextt(node, opts);
 
   switch (node.nodeName) {
     case 'h1':
@@ -154,6 +172,8 @@ async function convert(
     includePkgs = [],
     compilationDir = process.cwd(),
     ignoreBreaks = true,
+    preferDollarSignEqs = false,
+    debug = false,
     imageWidth,
     imageHeight,
     keepImageAspectRatio,
@@ -166,7 +186,9 @@ async function convert(
   const opts = {
     compilationDir,
     ignoreBreaks,
+    preferDollarSignEqs,
     autoGenImageNames,
+    debug,
     imageWidth,
     imageHeight,
     keepImageAspectRatio,
@@ -213,10 +235,23 @@ async function convert(
         );
         break;
       case 'p':
-        doc.push(convertPlainText(n, opts).then(nls));
+        doc.push(
+          convertRichTextt(n, opts)
+            .then((t) => {
+              const trimmed = t.trim();
+
+              // Check if text is only an equation. If so, switch \( \) & $ $, for \[ \]
+              if (trimmed.match(/^(\$|\\\()/) && trimmed.match(/(\\\)|\$)$/)) {
+                return trimmed.replace(/^(\$|\\\()/, '\\[').replace(/(\\\)|\$)$/, '\\]');
+              }
+
+              return t;
+            })
+            .then(nls),
+        );
         break;
       default:
-        doc.push(convertPlainText(n, opts));
+        doc.push(convertRichTextt(n, opts));
     }
   });
 

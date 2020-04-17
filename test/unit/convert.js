@@ -102,6 +102,15 @@ describe('convertText', () => {
       expect(tex).toBe('Styled Text\n');
     });
 
+    it('should ignore `\t`', async () => {
+      const html = `<p>Styled\tText</p>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('StyledText\n');
+    });
+  });
+
+  describe('Converting text with different types of breaks', () => {
     it('should convert simple text with `br` tags. These will be ignored by default', async () => {
       const html = `<p>Styled<br/>Text</p>`;
       const tex = await convertText(html);
@@ -114,6 +123,60 @@ describe('convertText', () => {
       const tex = await convertText(html, { ignoreBreaks: false });
 
       expect(tex).toBe('Styled\\\\\nText\n');
+    });
+
+    it('should convert simple text with `\n` and the ignoreBreaks argument set to false', async () => {
+      const html = `<p>Styled\nText</p>`;
+      const tex = await convertText(html, { ignoreBreaks: false });
+
+      expect(tex).toBe('Styled\\\\\nText\n');
+    });
+
+    it('should convert simple text with `\r` and the ignoreBreaks argument set to false', async () => {
+      const html = `<p>Styled\rText</p>`;
+      const tex = await convertText(html, { ignoreBreaks: false });
+
+      expect(tex).toBe('Styled\\\\\nText\n');
+    });
+  });
+
+  describe('Converting text with equations', () => {
+    it('should convert eq wrappers p tags with only an eq to use the \\[ wrapper instead of \\(', async () => {
+      const html = `<p>\\(x = 5\\Omega\\)</p>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('\\[x = 5\\Omega\\]\n');
+    });
+
+    it('should convert eq wrappers in p tags with only an eq to use the \\[ wrapper instead of $', async () => {
+      const html = `<p>$x = 5\\Omega$</p>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('\\[x = 5\\Omega\\]\n');
+    });
+
+    it('should not modify eq wrappers in p tags with an eq and other content', async () => {
+      const html = `<p>Some content $x = 5\\Omega$</p>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Some content $x = 5\\Omega$\n');
+    });
+
+    it('should prefer $ eq wrappers if configuration is given', async () => {
+      const html = `<p>Some content \\(x = 5\\Omega\\)</p>`;
+      const tex = await convertText(html, { preferDollarSignEqs: true });
+
+      expect(tex).toBe('Some content $x = 5\\Omega$\n');
+    });
+
+    it('should handle eqs deep within text without tag wrapping', async () => {
+      const html =
+        'This is some plain text \\(A,{\\rm{ }}B\\) and \\(C\\) with random equations \\(a,{\\rm{ }}b\\) and \\(c\\) \\((a < b < c)\\)';
+      const tex = await convertText(html, { preferDollarSignEqs: true });
+
+      expect(tex).toBe(
+        'This is some plain text $A,{\\rm{ }}B$ and $C$ with random equations $a,{\\rm{ }}b$ and $c$ $(a < b < c)$',
+      );
     });
   });
 
