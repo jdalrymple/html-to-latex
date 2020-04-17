@@ -88,12 +88,19 @@ Default: `true`
 
 Instead of replacing `<br/>`  with //, ending the line, a simple space character is inserted instead.
 
-###### preferDollarSignEqs
+###### preferDollarInlineMath
 
 Type: `boolean`
 Default: `false`
 
 Replace `\(` and `\)`  with `$`.
+
+###### skipWrappingEquations
+
+Type: `boolean`
+Default: `false`
+
+Is an equation is defined in a `p` tag without any other content besides that equation, it will automatically be wrapped in `\[` and `\]`.
 
 ###### debug
 

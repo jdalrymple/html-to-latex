@@ -86,10 +86,10 @@ function convertPlainText(value, opts) {
   const cleanText = value.replace(/(\n|\r)/g, breakReplacement).replace(/\t/g, '');
   const decodedText = decodeHTML(cleanText);
 
-  return opts.preferDollarSignEqs ? decodedText.replace(/\\\(|\\\)/g, '$') : decodedText;
+  return opts.preferDollarInlineMath ? decodedText.replace(/\\\(|\\\)/g, '$') : decodedText;
 }
 
-async function convertRichTextt({ value, childNodes = [] }, opts) {
+async function convertRichText({ value, childNodes = [] }, opts) {
   const text = [];
 
   if (value) return convertPlainText(value, opts);
@@ -101,21 +101,19 @@ async function convertRichTextt({ value, childNodes = [] }, opts) {
         break;
       case 'b':
       case 'strong':
-        text.push(convertRichTextt(n, opts).then((t) => bold(t)));
+        text.push(convertRichText(n, opts).then((t) => bold(t)));
         break;
       case 'i':
-        text.push(convertRichTextt(n, opts).then((t) => italic(t)));
+        text.push(convertRichText(n, opts).then((t) => italic(t)));
         break;
       case 'u':
-        text.push(convertRichTextt(n, opts).then((t) => underline(t)));
+        text.push(convertRichText(n, opts).then((t) => underline(t)));
         break;
       case 'br':
-        text.push(
-          convertRichTextt(n, opts).then((t) => (opts.ignoreBreaks ? sp(t) : linebreak(t))),
-        );
+        text.push(convertRichText(n, opts).then((t) => (opts.ignoreBreaks ? sp(t) : linebreak(t))));
         break;
       case 'span':
-        text.push(convertRichTextt(n, opts));
+        text.push(convertRichText(n, opts));
         break;
       case '#text': {
         text.push(convertPlainText(n.value, opts));
@@ -151,7 +149,7 @@ async function convertOrderedLists({ childNodes }, opts) {
 }
 
 async function convertHeading(node, opts) {
-  const text = await convertRichTextt(node, opts);
+  const text = await convertRichText(node, opts);
 
   switch (node.nodeName) {
     case 'h1':
@@ -172,7 +170,8 @@ async function convert(
     includePkgs = [],
     compilationDir = process.cwd(),
     ignoreBreaks = true,
-    preferDollarSignEqs = false,
+    preferDollarInlineMath = false,
+    skipWrappingEquations = false,
     debug = false,
     imageWidth,
     imageHeight,
@@ -186,7 +185,8 @@ async function convert(
   const opts = {
     compilationDir,
     ignoreBreaks,
-    preferDollarSignEqs,
+    preferDollarInlineMath,
+    skipWrappingEquations,
     autoGenImageNames,
     debug,
     imageWidth,
@@ -226,6 +226,7 @@ async function convert(
       case 'body':
       case 'html':
       case 'header':
+      case 'footer':
       case 'aside':
         doc.push(
           convert(n.childNodes, {
@@ -236,13 +237,20 @@ async function convert(
         break;
       case 'p':
         doc.push(
-          convertRichTextt(n, opts)
+          convertRichText(n, opts)
             .then((t) => {
               const trimmed = t.trim();
 
               // Check if text is only an equation. If so, switch \( \) & $ $, for \[ \]
-              if (trimmed.match(/^(\$|\\\()/) && trimmed.match(/(\\\)|\$)$/)) {
-                return trimmed.replace(/^(\$|\\\()/, '\\[').replace(/(\\\)|\$)$/, '\\]');
+              if (
+                !opts.skipWrappingEquations &&
+                trimmed.match(/^(\$|\\\()/) &&
+                trimmed.match(/(\\\)|\$)$/)
+              ) {
+                const rewrapped = trimmed.replace(/^(\$|\\\()/, '\\[').replace(/(\\\)|\$)$/, '\\]');
+
+                // TODO: Move all of this into the above regex check
+                if (!rewrapped.includes('$')) return rewrapped;
               }
 
               return t;
@@ -251,7 +259,7 @@ async function convert(
         );
         break;
       default:
-        doc.push(convertRichTextt(n, opts));
+        doc.push(convertRichText(n, opts));
     }
   });
 

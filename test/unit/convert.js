@@ -66,6 +66,50 @@ describe('convertText', () => {
     });
   });
 
+  describe('Converting embedded sectioning tags', () => {
+    it('should properly convert section tags', async () => {
+      const html = `<body><section>Test</section></body>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Test');
+    });
+
+    it('should properly convert aside tags', async () => {
+      const html = `<body><aside>Test</aside></body>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Test');
+    });
+
+    it('should properly convert div tags', async () => {
+      const html = `<body><div>Test</div></body>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Test');
+    });
+
+    it('should properly convert html tags', async () => {
+      const html = `<html><body>Test</body></html>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Test');
+    });
+
+    it('should properly convert header tags', async () => {
+      const html = `<body><header>Test</header></body>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Test');
+    });
+
+    it('should properly convert footer tags', async () => {
+      const html = `<body><footer>Test</footer></body>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Test');
+    });
+  });
+
   describe('Converting general text', () => {
     it('should convert simple text tag with bold `b` styling', async () => {
       const html = `<p>Styled <b>Text</b></p>`;
@@ -148,11 +192,25 @@ describe('convertText', () => {
       expect(tex).toBe('\\[x = 5\\Omega\\]\n');
     });
 
-    it('should convert eq wrappers in p tags with only an eq to use the \\[ wrapper instead of $', async () => {
+    it('should convert p tags with only an eq to use the \\[ wrapper instead of $', async () => {
       const html = `<p>$x = 5\\Omega$</p>`;
       const tex = await convertText(html);
 
       expect(tex).toBe('\\[x = 5\\Omega\\]\n');
+    });
+
+    it('should not convert p tags with only an eq to use the \\[ wrapper instead of \\( if skipWrappingEquations is true', async () => {
+      const html = `<p>\\(x = 5\\Omega\\)</p>`;
+      const tex = await convertText(html, { skipWrappingEquations: true });
+
+      expect(tex).toBe('\\(x = 5\\Omega\\)\n');
+    });
+
+    it('should not convert p tags with only an eq to use the \\[ wrapper instead of $ if skipWrappingEquations is true', async () => {
+      const html = `<p>$x = 5\\Omega$</p>`;
+      const tex = await convertText(html, { skipWrappingEquations: true });
+
+      expect(tex).toBe('$x = 5\\Omega$\n');
     });
 
     it('should not modify eq wrappers in p tags with an eq and other content', async () => {
@@ -164,7 +222,7 @@ describe('convertText', () => {
 
     it('should prefer $ eq wrappers if configuration is given', async () => {
       const html = `<p>Some content \\(x = 5\\Omega\\)</p>`;
-      const tex = await convertText(html, { preferDollarSignEqs: true });
+      const tex = await convertText(html, { preferDollarInlineMath: true });
 
       expect(tex).toBe('Some content $x = 5\\Omega$\n');
     });
@@ -172,7 +230,7 @@ describe('convertText', () => {
     it('should handle eqs deep within text without tag wrapping', async () => {
       const html =
         'This is some plain text \\(A,{\\rm{ }}B\\) and \\(C\\) with random equations \\(a,{\\rm{ }}b\\) and \\(c\\) \\((a < b < c)\\)';
-      const tex = await convertText(html, { preferDollarSignEqs: true });
+      const tex = await convertText(html, { preferDollarInlineMath: true });
 
       expect(tex).toBe(
         'This is some plain text $A,{\\rm{ }}B$ and $C$ with random equations $a,{\\rm{ }}b$ and $c$ $(a < b < c)$',
@@ -343,6 +401,30 @@ describe('convertText', () => {
       ];
 
       expect(tex).toBe(text.join('\n'));
+    });
+  });
+
+  describe('Converting with debug flag', () => {
+    it('should display errors when converting img tag with an inaccessible source url with the debug flag', async () => {
+      const spy = jest.spyOn(console, 'debug').mockImplementation();
+      const html = `<img src="image.png"/>`;
+
+      await convertText(html, { autoGenImageNames: false, debug: true });
+
+      expect(spy).toBeCalledTimes(2);
+
+      spy.mockRestore();
+    });
+
+    it('should not display errors when converting img tag with an inaccessible source url without the debug flag', async () => {
+      const spy = jest.spyOn(console, 'debug').mockImplementation();
+      const html = `<img src="image.png"/>`;
+
+      await convertText(html, { autoGenImageNames: false });
+
+      expect(spy).toBeCalledTimes(0);
+
+      spy.mockRestore();
     });
   });
 });
