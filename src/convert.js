@@ -86,7 +86,7 @@ function convertPlainText(value, opts) {
   const cleanText = value
     .replace(/(\n|\r)/g, breakReplacement) // Standardize line breaks or remove them
     .replace(/\t/g, '') // Remove tabs
-    .replace(/\%/g, '\\%');
+    .replace(/(?<!\\)\%/g, '\\%');
   const decodedText = decodeHTML(cleanText);
 
   return opts.preferDollarInlineMath ? decodedText.replace(/\\\(|\\\)/g, '$') : decodedText;
