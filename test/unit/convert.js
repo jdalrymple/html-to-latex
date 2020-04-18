@@ -152,6 +152,13 @@ describe('convertText', () => {
 
       expect(tex).toBe('StyledText\n');
     });
+
+    it('should escape `%`', async () => {
+      const html = `<p>Styled%Text</p>`;
+      const tex = await convertText(html);
+
+      expect(tex).toBe('Styled\\%Text\n');
+    });
   });
 
   describe('Converting text with different types of breaks', () => {
