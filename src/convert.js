@@ -19,13 +19,11 @@ import {
   italic,
   underline,
   divider,
-  linebreak,
   itemize,
   enumerate,
   item,
   image,
   nls,
-  sp,
 } from './templates';
 
 const pipeline = promisify(pipelineSync);
@@ -86,49 +84,41 @@ function convertPlainText(value, opts) {
   const cleanText = value
     .replace(/(\n|\r)/g, breakReplacement) // Standardize line breaks or remove them
     .replace(/\t/g, '') // Remove tabs
-    .replace(/(?<!\\)\%/g, '\\%');
+    .replace(/(?<!\\)%/g, '\\%');
   const decodedText = decodeHTML(cleanText);
 
   return opts.preferDollarInlineMath ? decodedText.replace(/\\\(|\\\)/g, '$') : decodedText;
 }
 
-async function convertRichText({ value, childNodes = [] }, opts) {
-  const text = [];
-
-  if (value) return convertPlainText(value, opts);
-
-  childNodes.forEach(async (n) => {
-    switch (n.nodeName) {
-      case 'img':
-        text.push(convertImage(n, opts));
-        break;
-      case 'b':
-      case 'strong':
-        text.push(convertRichText(n, opts).then((t) => bold(t)));
-        break;
-      case 'i':
-        text.push(convertRichText(n, opts).then((t) => italic(t)));
-        break;
-      case 'u':
-        text.push(convertRichText(n, opts).then((t) => underline(t)));
-        break;
-      case 'br':
-        text.push(convertRichText(n, opts).then((t) => (opts.ignoreBreaks ? sp(t) : linebreak(t))));
-        break;
-      case 'span':
-        text.push(convertRichText(n, opts));
-        break;
-      case '#text': {
-        text.push(convertPlainText(n.value, opts));
-        break;
-      }
-      default:
+async function convertRichTextSingle(n, opts) {
+  switch (n.nodeName) {
+    case 'img':
+      return convertImage(n, opts);
+    case 'b':
+    case 'strong':
+      return convertRichText(n, opts).then((t) => bold(t));
+    case 'i':
+      return convertRichText(n, opts).then((t) => italic(t));
+    case 'u':
+      return convertRichText(n, opts).then((t) => underline(t));
+    case 'br':
+      return opts.ignoreBreaks ? ' ' : '\\\\\n';
+    case 'span':
+      return convertRichText(n, opts);
+    case '#text':
+    default: {
+      return convertPlainText(n.value, opts);
     }
-  });
+  }
+}
 
-  const converted = await Promise.all(text);
+async function convertRichText(node, opts) {
+  if (node.childNodes && node.childNodes.length > 0) {
+    const converted = await Promise.all(node.childNodes.map((n) => convertRichTextSingle(n, opts)));
+    return converted.join('');
+  }
 
-  return converted.join('');
+  return convertRichTextSingle(node, opts);
 }
 
 async function convertUnorderedLists({ childNodes }, opts) {
@@ -164,7 +154,7 @@ async function convertHeading(node, opts) {
   }
 }
 
-async function convert(
+export async function convert(
   nodes,
   {
     autoGenImageNames = true,
@@ -184,6 +174,23 @@ async function convert(
     author,
   } = {},
 ) {
+  const blockedNodes = [
+    'h1',
+    'h2',
+    'h3',
+    'ul',
+    'ol',
+    'img',
+    'hr',
+    'div',
+    'section',
+    'body',
+    'html',
+    'header',
+    'footer',
+    'aside',
+    'p',
+  ];
   const doc = [];
   const opts = {
     compilationDir,
@@ -196,6 +203,7 @@ async function convert(
     imageHeight,
     keepImageAspectRatio,
   };
+  let tempInlineDoc = [];
 
   if (includeDocumentWrapper) {
     doc.push(documentClass(docClass));
@@ -206,6 +214,16 @@ async function convert(
   }
 
   nodes.forEach(async (n) => {
+    if (!blockedNodes.includes(n.nodeName)) {
+      tempInlineDoc.push(convertRichText(n, opts));
+      return;
+    }
+
+    if (tempInlineDoc.length > 0) {
+      tempInlineDoc = [];
+      doc.push(Promise.all(tempInlineDoc).then((t) => t.join('')));
+    }
+
     switch (n.nodeName) {
       case 'h1':
       case 'h2':
@@ -262,10 +280,17 @@ async function convert(
         );
         break;
       default:
-        doc.push(convertRichText(n, opts));
     }
   });
 
+  // Insert any left over inline nodes
+  if (tempInlineDoc.length > 0) {
+    const convertedInline = await Promise.all(tempInlineDoc);
+
+    doc.push(convertedInline.join(''));
+  }
+
+  // Add document wrapper if configuration is set
   if (includeDocumentWrapper) doc.push(endDocument);
 
   const converted = await Promise.all(doc);
@@ -274,9 +299,9 @@ async function convert(
 }
 
 export async function convertText(data, options = {}) {
-  const nodes = await parseFragment(data).childNodes;
+  const root = await parseFragment(data);
 
-  return convert(nodes, {
+  return convert(root.childNodes, {
     ...options,
     includePackages: options.includePackages || analyzeForPackageImports(data),
   });

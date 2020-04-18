@@ -169,7 +169,7 @@ describe('convertText', () => {
   });
 
   describe('Converting text with different types of breaks', () => {
-    it('should convert simple text with `br` tags. These will be ignored by default', async () => {
+    it('should convert simple `p` tag text with `br` tags. These will be ignored by default', async () => {
       const html = `<p>Styled<br/>Text</p>`;
       const tex = await convertText(html);
 
@@ -177,6 +177,13 @@ describe('convertText', () => {
     });
 
     it('should convert simple text with `br` tags and the ignoreBreaks argument set to false', async () => {
+      const html = `Styled<br/>Text`;
+      const tex = await convertText(html, { ignoreBreaks: false });
+
+      expect(tex).toBe('Styled\\\\\nText');
+    });
+
+    it('should convert simple `p` tag text with `br` tags and the ignoreBreaks argument set to false', async () => {
       const html = `<p>Styled<br/>Text</p>`;
       const tex = await convertText(html, { ignoreBreaks: false });
 
