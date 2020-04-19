@@ -8,7 +8,7 @@ import { promisify } from 'util';
 import { createWriteStream } from 'fs';
 import { generate as generateId } from 'shortid';
 import {
-  documentClass,
+  docClass,
   usePackages,
   beginDocument,
   endDocument,
@@ -80,7 +80,7 @@ async function convertImage(
 }
 
 function convertPlainText(value, opts) {
-  const breakReplacement = opts.ignoreBreaks ? '' : '\\\\\n';
+  const breakReplacement = opts.ignoreBreaks ? '' : '\n\n';
   const cleanText = value
     .replace(/(\n|\r)/g, breakReplacement) // Standardize line breaks or remove them
     .replace(/\t/g, '') // Remove tabs
@@ -102,7 +102,7 @@ async function convertRichTextSingle(n, opts) {
     case 'u':
       return convertRichText(n, opts).then((t) => underline(t));
     case 'br':
-      return opts.ignoreBreaks ? ' ' : '\\\\\n';
+      return opts.ignoreBreaks ? ' ' : '\n\n';
     case 'span':
       return convertRichText(n, opts);
     case '#text':
@@ -159,8 +159,8 @@ export async function convert(
   {
     autoGenImageNames = true,
     includeDocumentWrapper = false,
-    docClass = 'article',
-    includePkgs = [],
+    documentClass = 'article',
+    includePackages = [],
     compilationDir = process.cwd(),
     ignoreBreaks = true,
     preferDollarInlineMath = false,
@@ -206,9 +206,9 @@ export async function convert(
   let tempInlineDoc = [];
 
   if (includeDocumentWrapper) {
-    doc.push(documentClass(docClass));
+    doc.push(docClass(documentClass));
 
-    if (includePkgs.length > 0) doc.push(usePackages(includePkgs));
+    if (includePackages.length > 0) doc.push(usePackages(includePackages));
 
     doc.push(beginDocument({ title, includeDate, author }));
   }
@@ -220,8 +220,8 @@ export async function convert(
     }
 
     if (tempInlineDoc.length > 0) {
+      doc.push(Promise.all(tempInlineDoc).then((t) => t.join('').trim()));
       tempInlineDoc = [];
-      doc.push(Promise.all(tempInlineDoc).then((t) => t.join('')));
     }
 
     switch (n.nodeName) {
@@ -237,7 +237,7 @@ export async function convert(
         doc.push(convertOrderedLists(n, opts));
         break;
       case 'img':
-        doc.push(convertImage(n, opts).then(nls));
+        doc.push(convertImage(n, opts));
         break;
       case 'hr':
         doc.push(divider);
@@ -258,25 +258,23 @@ export async function convert(
         break;
       case 'p':
         doc.push(
-          convertRichText(n, opts)
-            .then((t) => {
-              const trimmed = t.trim();
+          convertRichText(n, opts).then((t) => {
+            const trimmed = t.trim();
 
-              // Check if text is only an equation. If so, switch \( \) & $ $, for \[ \]
-              if (
-                !opts.skipWrappingEquations &&
-                trimmed.match(/^(\$|\\\()/) &&
-                trimmed.match(/(\\\)|\$)$/)
-              ) {
-                const rewrapped = trimmed.replace(/^(\$|\\\()/, '\\[').replace(/(\\\)|\$)$/, '\\]');
+            // Check if text is only an equation. If so, switch \( \) & $ $, for \[ \]
+            if (
+              !opts.skipWrappingEquations &&
+              trimmed.match(/^(\$|\\\()/) &&
+              trimmed.match(/(\\\)|\$)$/)
+            ) {
+              const rewrapped = trimmed.replace(/^(\$|\\\()/, '\\[').replace(/(\\\)|\$)$/, '\\]');
 
-                // TODO: Move all of this into the above regex check
-                if (!rewrapped.includes('$')) return rewrapped;
-              }
+              // TODO: Move all of this into the above regex check
+              if (!rewrapped.includes('$')) return rewrapped;
+            }
 
-              return t;
-            })
-            .then(nls),
+            return trimmed;
+          }),
         );
         break;
       default:
@@ -285,9 +283,7 @@ export async function convert(
 
   // Insert any left over inline nodes
   if (tempInlineDoc.length > 0) {
-    const convertedInline = await Promise.all(tempInlineDoc);
-
-    doc.push(convertedInline.join(''));
+    doc.push(Promise.all(tempInlineDoc).then((t) => t.join('').trim()));
   }
 
   // Add document wrapper if configuration is set
@@ -295,7 +291,7 @@ export async function convert(
 
   const converted = await Promise.all(doc);
 
-  return converted.filter(Boolean).join('\n');
+  return converted.filter(Boolean).join('\n\n');
 }
 
 export async function convertText(data, options = {}) {
@@ -307,9 +303,9 @@ export async function convertText(data, options = {}) {
   });
 }
 
-export async function convertFile(filepath, { outputFileName = filepath, ...options } = {}) {
+export async function convertFile(filepath, { outputFilepath = filepath, ...options } = {}) {
   const data = await readFile(filepath, 'utf-8');
-  const processed = await convertText(data, options);
+  const processed = await convertText(data, { includeDocumentWrapper: true, ...options });
 
-  await exportFile(processed, outputFileName, dirname(filepath));
+  await exportFile(processed, outputFilepath, dirname(filepath));
 }

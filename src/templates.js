@@ -2,24 +2,22 @@ import { normalize } from 'path';
 
 export const nls = (text) => `${text}\n`;
 export const nlp = (text) => `\n${text}`;
-export const sp = (text) => ` ${text}`;
 
 export const center = (text) => `\\begin{center}\n\t${text}\n\\end{center}`;
 export const centering = (text) => `\\centering{${text}}`;
 
-export const section = (text) => nls(`\\section*{${centering(text)}}`);
-export const subsection = (text) => nls(`\\subsection*{${text}}`);
-export const subsubsection = (text) => nls(`\\subsubsection*{${text}}`);
+export const section = (text) => `\\section*{${centering(text)}}`;
+export const subsection = (text) => `\\subsection*{${text}}`;
+export const subsubsection = (text) => `\\subsubsection*{${text}}`;
 
 export const bold = (text) => `\\textbf{${text}}`;
 export const italic = (text) => `\\textit{${text}}`;
 export const underline = (text) => `\\underline{${text}}`;
 
 export const divider = nls('\\hrule');
-export const linebreak = (text) => `\\\\\n${text}`;
 
-export const enumerate = (text) => nls(`\\begin{enumerate}\n${text}\n\\end{enumerate}`);
-export const itemize = (text) => nls(`\\begin{itemize}\n${text}\n\\end{itemize}`);
+export const enumerate = (text) => `\\begin{enumerate}\n${text}\n\\end{enumerate}`;
+export const itemize = (text) => `\\begin{itemize}\n${text}\n\\end{itemize}`;
 export const item = (text) => `\t\\item ${text}`;
 export function image(path, width, height, keepRatio) {
   const line = ['\\includegraphics'];
@@ -51,8 +49,8 @@ export function beginDocument({ title, includeDate = false, author } = {}) {
 
   if (title) beginningText.push(nlp('\\maketitle'));
 
-  return nls(beginningText.join('\n'));
+  return beginningText.join('\n');
 }
 
 export const endDocument = nlp('\\end{document}');
-export const documentClass = (className) => nls(`\\documentclass{${className}}`);
+export const docClass = (className) => `\\documentclass{${className}}`;

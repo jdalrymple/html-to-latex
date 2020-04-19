@@ -17,23 +17,82 @@ program
         .positional('[--ifp] <input-file>', {
           type: 'string',
         })
-        .boolean('-ow --overwrite', {
-          group: 'Output Options',
-          defaultValue: false,
-        })
         .string('-ofp --output-file-path', {
           group: 'Output Options',
         })
         .boolean('-ib --ignore-breaks', {
           group: 'Parsing Options',
           defaultValue: true,
+        })
+        .boolean('-dm --prefer-dollar-inline-math', {
+          group: 'Parsing Options',
+          defaultValue: false,
+        })
+        .boolean('-swe --skip-wrapping-equations', {
+          group: 'Parsing Options',
+          defaultValue: false,
+        })
+        .boolean('-dw --include-document-wrapper', {
+          group: 'Parsing Options',
+          defaultValue: false,
+        })
+        .string('-dc --document-class', {
+          group: 'Parsing Options',
+          defaultValue: 'article',
+        })
+        .array('-ip --include-packages', {
+          group: 'Parsing Options',
+        })
+        .string('-t --title', {
+          group: 'Parsing Options',
+        })
+        .string('-a --author', {
+          group: 'Parsing Options',
+        })
+        .boolean('-d --include-date', {
+          group: 'Parsing Options',
+        })
+        .string('-cdr --compilation-dir', {
+          group: 'Image Parsing Options',
+          default: process.cwd(),
+        })
+        .boolean('-ain --autogen-image-names', {
+          group: 'Image Parsing Options',
+          defaultValue: true,
+        })
+        .string('-iw --image-width', {
+          group: 'Image Parsing Options',
+        })
+        .string('-ih --image-height', {
+          group: 'Image Parsing Options',
+        })
+        .boolean('-kar --keep-image-aspect-ratio', {
+          group: 'Image Parsing Options',
+          default: false,
+        })
+        .boolean('--debug', {
+          group: 'Image Parsing Options',
+          defaultValue: false,
         });
     },
     run: async (args) => {
-      const filename = basename(args.ifp, extname(args.ifp));
-      const outputFileName = args.ow === true ? filename : `processed-${filename}`;
-
-      await convertFile(filename, { outputFileName, ignoreBreaks: args.ib });
+      await convertFile(args.ifp, args.ofp, {
+        autoGenImageNames: args.ain,
+        includeDocumentWrapper: args.dw,
+        documentClass: args.dc,
+        includePackages: args.ip,
+        compilationDir: args.cpr,
+        preferDollarInlineMath: args.dm,
+        skipWrappingEquations: args.swe,
+        debug: args.debug,
+        imageWidth: args.iw,
+        imageHeight: args.ih,
+        keepImageAspectRatio: args.kar,
+        title: args.t,
+        includeDate: args.d,
+        author: args.a,
+        ignoreBreaks: args.ib,
+      });
     },
   });
 
