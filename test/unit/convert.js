@@ -458,6 +458,6 @@ describe('convertFile', () => {
 
     expect(tex).toBe(ref);
 
-    // await remove(resolve(__dirname, '../test-cases/3/index.html.tex'));
+    await remove(resolve(__dirname, '../test-cases/3/index.html.tex'));
   });
 });

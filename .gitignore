@@ -132,4 +132,3 @@ yarn.lock
 dist
 *.pdf
 *.aux
-*.tex
