@@ -1,4 +1,4 @@
-import { normalize } from 'path';
+import { normalizeSafe } from 'upath';
 
 export const nls = (text) => `${text}\n`;
 export const nlp = (text) => `\n${text}`;
@@ -28,7 +28,7 @@ export function image(path, width, height, keepRatio) {
   if ((width || height) && keepRatio) options.push('keepaspectratio');
   if (options.length) line.push(`[${options.join(',')}]`);
 
-  line.push(`{${normalize(path)}}`);
+  line.push(`{${normalizeSafe(path)}}`);
 
   return center(line.join(''));
 }
