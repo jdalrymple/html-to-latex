@@ -2,6 +2,7 @@ import { parseFragment } from 'parse5';
 import { decodeHTML } from 'entities';
 import { outputFile, readFile, pathExists, ensureDir } from 'fs-extra';
 import { resolve, basename, join, dirname, extname } from 'path';
+import { normalizeSafe } from 'upath';
 import { stream } from 'got';
 import { pipeline as pipelineSync } from 'stream';
 import { promisify } from 'util';
@@ -76,7 +77,7 @@ async function convertImage(
     }
   }
 
-  return image(localLatexPath, imageWidth, imageHeight, keepImageAspectRatio);
+  return image(normalizeSafe(localLatexPath), imageWidth, imageHeight, keepImageAspectRatio);
 }
 
 function convertPlainText(value, opts) {
