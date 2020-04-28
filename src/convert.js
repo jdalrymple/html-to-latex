@@ -24,7 +24,6 @@ import {
   enumerate,
   item,
   image,
-  nls,
 } from './templates';
 
 const pipeline = promisify(pipelineSync);
