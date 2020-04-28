@@ -1,10 +1,8 @@
 import { directory } from 'tempy';
 import { pathExists, remove, readFile } from 'fs-extra';
 import { resolve } from 'path';
-import { generate } from 'shortid';
+import ShortId from 'shortid';
 import { convertText, exportFile, convertFile } from '../../src/convert';
-
-jest.mock('shortid');
 
 describe('exportFile', () => {
   let dir;
@@ -331,21 +329,27 @@ describe('convertText', () => {
     });
 
     it('should convert wrapped img tag', async () => {
-      generate.mockReturnValueOnce('image2');
+      const spy = jest.spyOn(ShortId, 'generate');
+      spy.mockImplementation(() => 'image2');
 
       const html = `<p><img src="image.png"/></p>`;
       const tex = await convertText(html);
 
       expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image2.png}\n\\end{center}');
+
+      spy.mockClear();
     });
 
     it('should default to a jpg extension when converting img tag with a image url without a extension', async () => {
-      generate.mockReturnValueOnce('image2');
+      const spy = jest.spyOn(ShortId, 'generate');
+      spy.mockImplementation(() => 'image2');
 
       const html = `<p><img src="image"/></p>`;
       const tex = await convertText(html);
 
       expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image2.jpg}\n\\end{center}');
+
+      spy.mockClear();
     });
 
     it('should add width restrictions when given', async () => {
@@ -451,6 +455,9 @@ describe('convertFile', () => {
   });
 
   it('should convert text without tag wrapper while ignoring break tags', async () => {
+    const spy = jest.spyOn(ShortId, 'generate');
+    spy.mockImplementation(() => 'image2');
+
     await convertFile(resolve(__dirname, '../test-cases/3/index.html'), { ignoreBreaks: false });
 
     const tex = await readFile(resolve(__dirname, '../test-cases/3/index.html.tex'), 'utf-8');
@@ -459,5 +466,7 @@ describe('convertFile', () => {
     expect(tex).toBe(ref);
 
     await remove(resolve(__dirname, '../test-cases/3/index.html.tex'));
+
+    spy.mockClear();
   });
 });
