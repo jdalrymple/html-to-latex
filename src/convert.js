@@ -105,9 +105,9 @@ async function convertRichTextSingle(n, opts) {
     case 'span':
       return convertRichText(n, opts);
     case '#text':
-    default: {
       return convertPlainText(n.value, opts);
-    }
+    default:
+      return '';
   }
 }
 
