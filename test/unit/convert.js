@@ -389,6 +389,13 @@ describe('convertText', () => {
 
       expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image.png}\n\\end{center}');
     });
+
+    it('should not center the image', async () => {
+      const html = `<img src="image.png"/>`;
+      const tex = await convertText(html, { autoGenImageNames: false, centerImages: false });
+
+      expect(tex).toBe('\\includegraphics{images/image.png}');
+    });
   });
 
   describe('Converting list tags', () => {

@@ -49,6 +49,7 @@ async function convertImage(
     imageWidth,
     imageHeight,
     keepImageAspectRatio,
+    centerImages = true,
     debug,
   } = {},
 ) {
@@ -75,7 +76,12 @@ async function convertImage(
     }
   }
 
-  return image(localLatexPath, imageWidth, imageHeight, keepImageAspectRatio);
+  return image(localLatexPath, {
+    width: imageWidth,
+    height: imageHeight,
+    keepRatio: keepImageAspectRatio,
+    center: centerImages,
+  });
 }
 
 function convertPlainText(value, opts) {
@@ -168,6 +174,7 @@ export async function convert(
     imageWidth,
     imageHeight,
     keepImageAspectRatio,
+    centerImages,
     title,
     includeDate,
     author,
@@ -201,6 +208,7 @@ export async function convert(
     imageWidth,
     imageHeight,
     keepImageAspectRatio,
+    centerImages,
   };
   let tempInlineDoc = [];
 

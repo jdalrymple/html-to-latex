@@ -3,7 +3,7 @@ import { normalizeSafe } from 'upath';
 export const nls = (text) => `${text}\n`;
 export const nlp = (text) => `\n${text}`;
 
-export const center = (text) => `\\begin{center}\n\t${text}\n\\end{center}`;
+export const centerblk = (text) => `\\begin{center}\n\t${text}\n\\end{center}`;
 export const centering = (text) => `\\centering{${text}}`;
 
 export const section = (text) => `\\section*{${centering(text)}}`;
@@ -19,7 +19,7 @@ export const divider = nls('\\hrule');
 export const enumerate = (text) => `\\begin{enumerate}\n${text}\n\\end{enumerate}`;
 export const itemize = (text) => `\\begin{itemize}\n${text}\n\\end{itemize}`;
 export const item = (text) => `\t\\item ${text}`;
-export function image(path, width, height, keepRatio) {
+export function image(path, { width, height, keepRatio, center } = { center: true }) {
   const line = ['\\includegraphics'];
   const options = [];
 
@@ -30,7 +30,7 @@ export function image(path, width, height, keepRatio) {
 
   line.push(`{${normalizeSafe(path)}}`);
 
-  return center(line.join(''));
+  return center ? centerblk(line.join('')) : line.join('');
 }
 
 export function usePackages(packageNames) {
