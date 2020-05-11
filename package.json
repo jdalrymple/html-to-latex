@@ -1,7 +1,7 @@
 {
   "name": "html-to-latex",
   "description": "convert html to latex",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "dependencies": {
     "entities": "^2.0.0",
     "fs-extra": "^9.0.0",
