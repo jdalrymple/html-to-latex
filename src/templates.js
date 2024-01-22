@@ -13,6 +13,11 @@ export const subsubsection = (text) => `\\subsubsection*{${text}}`;
 export const bold = (text) => `\\textbf{${text}}`;
 export const italic = (text) => `\\textit{${text}}`;
 export const underline = (text) => `\\underline{${text}}`;
+export const strikethrough = (text) => `\\sout{${text}}`;
+export const superscript = (text) => `$^{${text}}$`;
+export const subscript = (text) => `$_{${text}}$`;
+
+export const hyperlink = (text, url) => `\\href{${url}}{${text}}`;
 
 export const divider = nls('\\hrule');
 
@@ -54,3 +59,24 @@ export function beginDocument({ title, includeDate = false, author } = {}) {
 
 export const endDocument = nlp('\\end{document}');
 export const docClass = (className) => `\\documentclass{${className}}`;
+
+export const escapeLatexSpecialChars = (match, p1) => {
+  if (p1) return match;
+
+  const latexSpecialCharsMap = {
+  '\\': '\\textbackslash{}',
+  '{': '\\{',
+  '}': '\\}',
+  '%': '\\%',
+  '$': '\\$',
+  '&': '\\&',
+  '#': '\\#',
+  '^': '\\^{}',
+  '_': '\\_',
+  '~': '\\textasciitilde{}',
+  '%': '\\%',
+  '|': '\\textbar{}',
+};
+
+  return latexSpecialCharsMap[match] || match;
+};

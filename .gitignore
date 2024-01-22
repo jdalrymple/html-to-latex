@@ -132,3 +132,4 @@ yarn.lock
 dist
 *.pdf
 *.aux
+pnpm-lock.yaml

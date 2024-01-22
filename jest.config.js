@@ -1,10 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
-  testRegex: 'test\\/.*\\.js$',
-  testMatch: null,
-  testURL: 'http://localhost/',
-  testTimeout: 15000,
-
+  testMatch: ['<rootDir>/test/**/*.test.js'],
   coverageDirectory: 'coverage',
   collectCoverage: true,
 };
