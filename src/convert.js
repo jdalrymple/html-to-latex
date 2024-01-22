@@ -18,11 +18,16 @@ import {
   bold,
   italic,
   underline,
+  strikethrough,
+  superscript,
+  subscript,
+  hyperlink,
   divider,
   itemize,
   enumerate,
   item,
   image,
+  escapeLatexSpecialChars
 } from './templates';
 
 const pipeline = promisify(pipelineSync);
@@ -33,6 +38,9 @@ function analyzeForPackageImports(HTMLText) {
   if (HTMLText.includes('\\cfrac')) pkgs.push('amsmath');
   if (HTMLText.includes('<img')) pkgs.push('graphicx');
   if (HTMLText.includes('\\therefore')) pkgs.push('amssymb');
+  if (HTMLText.includes('<s>')) pkgs.push('ulem');
+  if (HTMLText.includes('</a>')) pkgs.push('hyperref');
+  if (HTMLText.includes('</code>')) pkgs.push('listings');
 
   return pkgs;
 }
@@ -84,12 +92,17 @@ async function convertImage(
   });
 }
 
+
 function convertPlainText(value, opts) {
   const breakReplacement = opts.ignoreBreaks ? '' : '\n\n';
   const cleanText = value
     .replace(/(\n|\r)/g, breakReplacement) // Standardize line breaks or remove them
     .replace(/\t/g, '') // Remove tabs
-    .replace(/(?<!\\)%/g, '\\%');
+    // .replace(/\\(?!\\|%|&|_|\$|#|\{|\}|~|\^|<|>|"|\|)/g, '\\textbackslash{}')
+    .replace(/(\\)([%&#~<>\|])|([%&#~<>\|])/g, escapeLatexSpecialChars);
+    // Ideally, we would check for all special characters, e.g., /(\\)([%&_$#{}~^<>|"])|([%&_$#{}~^<>|"])/g
+    // However, we are currently allowing equations to be written in the HTML file.
+
   const decodedText = decodeHTML(cleanText);
 
   return opts.preferDollarInlineMath ? decodedText.replace(/\\\(|\\\)/g, '$') : decodedText;
@@ -103,17 +116,25 @@ async function convertRichTextSingle(n, opts) {
     case 'strong':
       return convertRichText(n, opts).then((t) => bold(t));
     case 'i':
+    case 'em':
       return convertRichText(n, opts).then((t) => italic(t));
     case 'u':
       return convertRichText(n, opts).then((t) => underline(t));
+    case 's':
+      return convertRichText(n, opts).then((t) => strikethrough(t));
+    case 'sub':
+      return convertRichText(n, opts).then((t) => subscript(t));
+    case 'sup':
+      return convertRichText(n, opts).then((t) => superscript(t));
     case 'br':
       return opts.ignoreBreaks ? ' ' : '\n\n';
-    case 'span':
-      return convertRichText(n, opts);
+    case 'a':
+      return convertRichText(n, opts).then((t) => hyperlink(t, n.attrs.find(({ name }) => name === 'href').value));
     case '#text':
       return convertPlainText(n.value, opts);
     default:
-      return '';
+      // we allow unknown tags to pass through
+      return convertRichText(n, opts);
   }
 }
 
@@ -184,18 +205,21 @@ export async function convert(
     'h1',
     'h2',
     'h3',
+    'h4',
+    'h5',
+    'h6',
     'ul',
     'ol',
     'img',
     'hr',
     'div',
-    'section',
     'body',
     'html',
     'header',
     'footer',
-    'aside',
     'p',
+    'table',
+    'code'
   ];
   const doc = [];
   const opts = {
@@ -235,6 +259,9 @@ export async function convert(
       case 'h1':
       case 'h2':
       case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
         doc.push(convertHeading(n, opts));
         break;
       case 'ul':
@@ -284,6 +311,21 @@ export async function convert(
           }),
         );
         break;
+      case 'table':
+        if (n.childNodes.length === 0) 
+          break;
+        if (n.childNodes[0].nodeName == 'tbody')
+          doc.push(convertTable(n.childNodes[0], opts));
+        else
+          doc.push(convertTable(n, opts));
+        break;
+      case 'code':
+        doc.push(
+          convertRichText(n, opts).then((t) => {
+            const trimmed = t.trim();
+            return '\\begin{lstlisting}\n' + trimmed + '\n\\end{lstlisting}';
+          }),
+        );
       default:
     }
   });
@@ -315,4 +357,21 @@ export async function convertFile(filepath, { outputFilepath = filepath, ...opti
   const processed = await convertText(data, { includeDocumentWrapper: true, ...options });
 
   await exportFile(processed, outputFilepath, dirname(filepath));
+}
+
+async function convertTable(node, opts) {
+  const rows = Array.from(node.childNodes).filter(n => n.nodeName === 'tr');
+  const processedRows = await Promise.all(rows.map(row => convertTableRow(row, opts)));
+  return '\\begin{tabular}{|' + 'c|'.repeat(processedRows[0].split('&').length) + '}\n' + 
+         '\t\\hline\n\t' + processedRows.join('\t\\hline\n\t') + '\t\\hline\n\t' + '\\end{tabular}';
+}
+
+async function processTableCells(cells, opts) {
+  return Promise.all(cells.map(cell => convertRichText(cell, opts)));
+}
+
+async function convertTableRow(row, opts) {
+  const cells = Array.from(row.childNodes).filter(n => n.nodeName === 'td' || n.nodeName === 'th');
+  const processedCells = await processTableCells(cells, opts);
+  return processedCells.join(' & ') + ' \\\\\n'; // LaTeX column separator & line end
 }
