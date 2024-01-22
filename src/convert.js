@@ -40,6 +40,7 @@ function analyzeForPackageImports(HTMLText) {
   if (HTMLText.includes('\\therefore')) pkgs.push('amssymb');
   if (HTMLText.includes('<s>')) pkgs.push('ulem');
   if (HTMLText.includes('</a>')) pkgs.push('hyperref');
+  if (HTMLText.includes('</code>')) pkgs.push('listings');
 
   return pkgs;
 }
@@ -217,6 +218,8 @@ export async function convert(
     'header',
     'footer',
     'p',
+    'table',
+    'code'
   ];
   const doc = [];
   const opts = {
@@ -308,6 +311,21 @@ export async function convert(
           }),
         );
         break;
+      case 'table':
+        if (n.childNodes.length === 0) 
+          break;
+        if (n.childNodes[0].nodeName == 'tbody')
+          doc.push(convertTable(n.childNodes[0], opts));
+        else
+          doc.push(convertTable(n, opts));
+        break;
+      case 'code':
+        doc.push(
+          convertRichText(n, opts).then((t) => {
+            const trimmed = t.trim();
+            return '\\begin{lstlisting}\n' + trimmed + '\n\\end{lstlisting}';
+          }),
+        );
       default:
     }
   });
@@ -339,4 +357,21 @@ export async function convertFile(filepath, { outputFilepath = filepath, ...opti
   const processed = await convertText(data, { includeDocumentWrapper: true, ...options });
 
   await exportFile(processed, outputFilepath, dirname(filepath));
+}
+
+async function convertTable(node, opts) {
+  const rows = Array.from(node.childNodes).filter(n => n.nodeName === 'tr');
+  const processedRows = await Promise.all(rows.map(row => convertTableRow(row, opts)));
+  return '\\begin{tabular}{|' + 'c|'.repeat(processedRows[0].split('&').length) + '}\n' + 
+         '\t\\hline\n\t' + processedRows.join('\t\\hline\n\t') + '\t\\hline\n\t' + '\\end{tabular}';
+}
+
+async function processTableCells(cells, opts) {
+  return Promise.all(cells.map(cell => convertRichText(cell, opts)));
+}
+
+async function convertTableRow(row, opts) {
+  const cells = Array.from(row.childNodes).filter(n => n.nodeName === 'td' || n.nodeName === 'th');
+  const processedCells = await processTableCells(cells, opts);
+  return processedCells.join(' & ') + ' \\\\\n'; // LaTeX column separator & line end
 }

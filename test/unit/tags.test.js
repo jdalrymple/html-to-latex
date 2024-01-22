@@ -9,7 +9,6 @@ describe('Converting Simple Tags', () => {
         expect(tex).toBe('Test');
     });
 
-
     it('should convert heading tags', async () => {
         // h4, h5, and h6 are converted to subsubsections.
         const html = `<h1>Heading 1</h1><h2>Heading 2</h2><h3>Heading 3</h3><h4>Heading 4</h4><h5>Heading 5</h5><h6>Heading 6</h6>`;
@@ -31,6 +30,21 @@ describe('Converting Simple Tags', () => {
   
         expect(tex).toBe('\\begin{enumerate}\n\t\\item Item 1\n\t\\item Item 2\n\\end{enumerate}');
     });
+
+    it('should convert a table', async () => {
+        const html = `<table><tr><th>Header 1</th><th>Header 2</th></tr><tr><td>Item 1</td><td>Item 2</td></tr></table>`;
+        const tex = await convertText(html);
+
+        expect(tex).toBe('\\begin{tabular}{|c|c|}\n\t\\hline\n\tHeader 1 & Header 2 \\\\\n\t\\hline\n\tItem 1 & Item 2 \\\\\n\t\\hline\n\t\\end{tabular}');
+    });
+
+    it('should convert code tags', async () => {
+        const html = `<code>console.log('Hello World!');</code>`;
+        const tex = await convertText(html);
+  
+        expect(tex).toBe('\\begin{lstlisting}\nconsole.log(\'Hello World!\');\n\\end{lstlisting}');
+    });
+
 
     it('should convert horizontal rule', async () => {
         const html = `<hr>`;
