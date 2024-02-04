@@ -1,12 +1,10 @@
 env:
   node: true
-  jest/globals: true
 
 extends:
   - airbnb-base
   - plugin:@typescript-eslint/recommended-requiring-type-checking
   - plugin:prettier/recommended
-  - plugin:jest/recommended
 
 parser: '@typescript-eslint/parser'
 
@@ -22,14 +20,19 @@ plugins:
   - '@typescript-eslint'
   - prettier
   - import
-  - jest
 
 rules:
-  import/prefer-default-export: off
-  import/extensions:
+  no-console:
     - error
-    - never
-    - json: always
+    - allow:
+      - debug
+
+  no-use-before-define:
+    - error
+    - functions: false
+      classes: false
+
+  import/prefer-default-export: off
 
   sort-imports:
     - error

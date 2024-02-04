@@ -98,7 +98,7 @@ export const endDocument = newLinePrefix('\\end{document}');
 export const docClass = (className: string): string => `\\documentclass{${className}}`;
 
 export const escapeLatexSpecialChars = (specialCharacter: string): string => {
-  const latexSpecialCharsMap = {
+  const latexSpecialCharsMap: Record<string, string> = {
     '\\': '\\textbackslash{}',
     '{': '\\{',
     '}': '\\}',

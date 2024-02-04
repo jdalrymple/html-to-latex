@@ -1,13 +1,14 @@
 import { createWriteStream } from 'node:fs';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { Readable } from 'node:stream';
+import type { ReadableStream } from 'node:stream/web';
 import { finished } from 'node:stream/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
 import { nanoid as generateId } from 'nanoid';
 import { decodeHTML } from 'entities';
-import * as Template from './templates.mjs';
+import * as Template from './templates.mts';
 
 export interface ConvertOptions {
   preferDollarInlineMath?: boolean;
@@ -73,7 +74,7 @@ export async function convertImage(
       const { body } = await fetch(url.href);
       const fileStream = createWriteStream(localPath);
 
-      await finished(Readable.fromWeb(body as any).pipe(fileStream));
+      await finished(Readable.fromWeb(body as ReadableStream<Uint8Array>).pipe(fileStream));
     } catch (e) {
       if (options.debug) {
         console.debug(`URL: ${origPath}`);
@@ -96,7 +97,7 @@ export function convertPlainText(inputText: string, options: ConvertOptions): st
     .replace(/(\n|\r)/g, breakReplacement) // Standardize line breaks or remove them
     .replace(/\t/g, '') // Remove tabs
     // .replace(/\\(?!\\|%|&|_|\$|#|\{|\}|~|\^|<|>|"|\|)/g, '\\textbackslash{}')
-    .replace(/(\\)([%&#~<>\|])|([%&#~<>\|])/g, Template.escapeLatexSpecialChars);
+    .replace(/(\\)([%&#~<>|])|([%&#~<>|])/g, Template.escapeLatexSpecialChars);
   // Ideally, we would check for all special characters, e.g., /(\\)([%&_$#{}~^<>|"])|([%&_$#{}~^<>|"])/g
   // However, we are currently allowing equations to be written in the HTML file.
 
@@ -141,8 +142,8 @@ export async function convertRichTextSingle(
   }
 }
 
-export async function convertRichText(node: ElementNode, options: ConvertOptions): Promise<string> {
-  if (node.childNodes && node.childNodes.length > 0) {
+export async function convertRichText(node: ChildNode, options: ConvertOptions): Promise<string> {
+  if ('childNodes' in node && node.childNodes.length > 0) {
     const converted = await Promise.all(
       node.childNodes.map((n: ChildNode) => convertRichTextSingle(n, options)),
     );
@@ -157,7 +158,7 @@ export async function convertUnorderedLists(
   node: ElementNode,
   options: ConvertOptions,
 ): Promise<string> {
-  const filtered = await node.childNodes.filter(({ nodeName }) => nodeName === 'li');
+  const filtered = node.childNodes.filter(({ nodeName }) => nodeName === 'li');
   const texts = await Promise.all(
     filtered.map((f) => convert([f], { ...options, includeDocumentWrapper: false })),
   );
@@ -170,7 +171,7 @@ export async function convertOrderedLists(
   node: ElementNode,
   options: ConvertOptions,
 ): Promise<string> {
-  const filtered = await node.childNodes.filter(({ nodeName }) => nodeName === 'li');
+  const filtered = node.childNodes.filter(({ nodeName }) => nodeName === 'li');
   const texts = await Promise.all(
     filtered.map((f) => convert([f], { ...options, includeDocumentWrapper: false })),
   );
@@ -194,7 +195,7 @@ export async function convertHeading(node: ElementNode, options: ConvertOptions)
 
 export async function convertTable(node: ElementNode, options: ConvertOptions): Promise<string> {
   const rows = Array.from(node.childNodes).filter((n) => n.nodeName === 'tr');
-  const processedRows = await Promise.all(rows.map((row) => convertTableRow(row, options)));
+  const processedRows = await Promise.all(rows.map((row: ElementNode) => convertTableRow(row, options)));
 
   return (
     `\\begin{tabular}{|${'c|'.repeat(processedRows[0].split('&').length)}}\n` +
@@ -206,7 +207,7 @@ export async function convertTable(node: ElementNode, options: ConvertOptions): 
 export async function processTableCells(
   nodes: ElementNode[],
   options: ConvertOptions,
-): Promise<string> {
+): Promise<string[]> {
   return Promise.all(nodes.map((node) => convertRichText(node, options)));
 }
 
@@ -293,7 +294,7 @@ export async function convert(
     'code',
   ];
   const doc: (Promise<string> | string)[] = [];
-  let tempInlineDoc: string[] = [];
+  let tempInlineDoc: (Promise<string> | string)[] = [];
 
   if (includeDocumentWrapper) {
     doc.push(Template.docClass(documentClass));
@@ -316,7 +317,7 @@ export async function convert(
     centerImages,
   };
 
-  nodes.forEach(async (node) => {
+  nodes.forEach((node) => {
     if (!blockedNodes.includes(node.nodeName)) {
       tempInlineDoc.push(convertRichText(node, partialOptions));
 
@@ -363,12 +364,13 @@ export async function convert(
         break;
       case 'table':
         if (node.childNodes.length === 0) break;
-        if (node.childNodes[0].nodeName == 'tbody')
+        if (node.childNodes[0].nodeName === 'tbody')
           doc.push(convertTable(node.childNodes[0], partialOptions));
         else doc.push(convertTable(node, partialOptions));
         break;
       case 'code':
         doc.push(convertRichText(node, partialOptions).then((t) => Template.sourceCode(t.trim())));
+        break;
       default:
     }
   });

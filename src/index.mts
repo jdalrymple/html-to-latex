@@ -1,2 +1,2 @@
-export { convertText, convertFile } from './convert.mjs';
-export type { ConvertOptions, ConvertFileOptions } from './convert.mjs';
+export { convertText, convertFile } from './convert.mts';
+export type { ConvertOptions, ConvertFileOptions } from './convert.mts';
