@@ -2,14 +2,13 @@
 /* eslint no-console: 0 */
 
 import program from 'sywac';
-import { extname, basename } from 'path';
-import { convertFile } from './convert';
+import { convertFile } from './convert.mts';
 
 // Add default settings
 program
   .version('-v, --version')
   .help('-h, --help')
-  .epilogue('Copyright 2020')
+  .epilogue('Copyright 2024')
   .command('convert-file', {
     desc: 'Convert HTML to Latex',
     setup: (args) => {
@@ -76,7 +75,8 @@ program
         });
     },
     run: async (args) => {
-      await convertFile(args.ifp, args.ofp, {
+      await convertFile(args.ifp, {
+        outputFilePath: args.ofp,
         autoGenImageNames: args.ain,
         includeDocumentWrapper: args.dw,
         documentClass: args.dc,
