@@ -1,27 +1,28 @@
+import { nanoid as generateId } from 'nanoid';
+import { decodeHTML } from 'entities';
+import { parseFragment } from 'parse5';
+import type { DefaultTreeAdapterMap, Token } from 'parse5';
 import { createWriteStream } from 'node:fs';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import type { ReadableStream } from 'node:stream/web';
 import { finished } from 'node:stream/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
-import { parseFragment } from 'parse5';
-import type { DefaultTreeAdapterMap, Token } from 'parse5';
-import { nanoid as generateId } from 'nanoid';
-import { decodeHTML } from 'entities';
 import * as Template from './templates.mts';
+import { analyzeForPackageImports, exportFile } from './utils.mts';
 
 export interface ConvertOptions {
   preferDollarInlineMath?: boolean;
   ignoreBreaks?: boolean;
   compilationDir?: string;
   skipWrappingEquations?: boolean;
-  autoGenImageNames?: boolean;
+  autogenImageNames?: boolean;
   debug?: boolean;
-  imageWidth?: number;
-  imageHeight?: number;
+  imageWidth?: string;
+  imageHeight?: string;
   keepImageAspectRatio?: boolean;
   centerImages?: boolean;
-  includePackages?: string[];
+  includedPackages?: string[];
   includeDocumentWrapper?: boolean;
   documentClass?: string;
   title?: string;
@@ -30,7 +31,7 @@ export interface ConvertOptions {
 }
 
 export interface ConvertFileOptions extends ConvertOptions {
-  outputFilePath: string;
+  outputFilePath?: string;
 }
 
 export type ElementNode = DefaultTreeAdapterMap['element'];
@@ -41,19 +42,6 @@ export type ChildNode = DefaultTreeAdapterMap['childNode'];
 
 export type Attribute = Token.Attribute;
 
-export function analyzeForPackageImports(HTMLText: string): string[] {
-  const pkgs: string[] = [];
-
-  if (HTMLText.includes('\\cfrac')) pkgs.push('amsmath');
-  if (HTMLText.includes('<img')) pkgs.push('graphicx');
-  if (HTMLText.includes('\\therefore')) pkgs.push('amssymb');
-  if (HTMLText.includes('<s>')) pkgs.push('ulem');
-  if (HTMLText.includes('</a>')) pkgs.push('hyperref');
-  if (HTMLText.includes('</code>')) pkgs.push('listings');
-
-  return pkgs;
-}
-
 export async function convertImage(
   node: ElementNode,
   { compilationDir = process.cwd(), ...options }: ConvertOptions = {} as ConvertOptions,
@@ -61,12 +49,13 @@ export async function convertImage(
   const imagesDir = resolve(compilationDir, 'images');
   const origPath = (node.attrs.find(({ name }) => name === 'src') as Attribute).value;
   const ext = extname(origPath) || '.jpg';
-  const base = options.autoGenImageNames ? `${generateId()}${ext}` : basename(origPath);
+  const base = options.autogenImageNames ? `${generateId()}${ext}` : basename(origPath);
   const localPath = resolve(imagesDir, base);
   const localLatexPath = join('images', base);
-  const exists = await stat(localPath);
 
-  if (!exists.isFile()) {
+  try {
+    await stat(localPath);
+  } catch (fsError) {
     try {
       await mkdir(imagesDir);
 
@@ -75,10 +64,10 @@ export async function convertImage(
       const fileStream = createWriteStream(localPath);
 
       await finished(Readable.fromWeb(body as ReadableStream<Uint8Array>).pipe(fileStream));
-    } catch (e) {
+    } catch (processError) {
       if (options.debug) {
         console.debug(`URL: ${origPath}`);
-        console.debug(e);
+        console.debug(processError);
       }
     }
   }
@@ -91,13 +80,14 @@ export async function convertImage(
   });
 }
 
-export function convertPlainText(inputText: string, options: ConvertOptions): string {
+export function convertPlainText(inputText: string, options: ConvertOptions = {}): string {
   const breakReplacement = options.ignoreBreaks ? '' : '\n\n';
   const cleanText = inputText
-    .replace(/(\n|\r)/g, breakReplacement) // Standardize line breaks or remove them
+    .replace(/(\n|\r)+/g, '\n') // Standardize line breaks
+    .replace(/\n/g, breakReplacement) // Standardize through double breaks or remove them
     .replace(/\t/g, '') // Remove tabs
     // .replace(/\\(?!\\|%|&|_|\$|#|\{|\}|~|\^|<|>|"|\|)/g, '\\textbackslash{}')
-    .replace(/(\\)([%&#~<>|])|([%&#~<>|])/g, Template.escapeLatexSpecialChars);
+    .replace(/(\\)([%&#~<>|])|([%&#~<>|])/g, Template.latexSpecialCharacter);
   // Ideally, we would check for all special characters, e.g., /(\\)([%&_$#{}~^<>|"])|([%&_$#{}~^<>|"])/g
   // However, we are currently allowing equations to be written in the HTML file.
 
@@ -111,8 +101,8 @@ export async function convertRichTextSingle(
   options: ConvertOptions,
 ): Promise<string> {
   switch (node.nodeName) {
-    case 'img':
-      return convertImage(node as unknown as ElementNode, options);
+    // case 'img':
+    //   return convertImage(node as unknown as ElementNode, options);
     case 'b':
     case 'strong':
       return convertRichText(node, options).then((t: string) => Template.bold(t));
@@ -195,7 +185,9 @@ export async function convertHeading(node: ElementNode, options: ConvertOptions)
 
 export async function convertTable(node: ElementNode, options: ConvertOptions): Promise<string> {
   const rows = Array.from(node.childNodes).filter((n) => n.nodeName === 'tr');
-  const processedRows = await Promise.all(rows.map((row: ElementNode) => convertTableRow(row, options)));
+  const processedRows = await Promise.all(
+    rows.map((row: ElementNode) => convertTableRow(row, options)),
+  );
 
   return (
     `\\begin{tabular}{|${'c|'.repeat(processedRows[0].split('&').length)}}\n` +
@@ -204,18 +196,11 @@ export async function convertTable(node: ElementNode, options: ConvertOptions): 
   );
 }
 
-export async function processTableCells(
-  nodes: ElementNode[],
-  options: ConvertOptions,
-): Promise<string[]> {
-  return Promise.all(nodes.map((node) => convertRichText(node, options)));
-}
-
 export async function convertTableRow(node: ElementNode, options: ConvertOptions): Promise<string> {
   const cells: ElementNode[] = Array.from(node.childNodes).filter(
     (n) => n.nodeName === 'td' || n.nodeName === 'th',
   ) as ElementNode[];
-  const processedCells = await processTableCells(cells, options);
+  const processedCells = await Promise.all(cells.map((cell) => convertRichText(cell, options)));
 
   return `${processedCells.join(' & ')} \\\\\n`; // LaTeX column separator & line end
 }
@@ -242,23 +227,13 @@ export async function convertParagraphTag(
   return trimmed;
 }
 
-export async function exportFile(
-  text: string,
-  filename: string,
-  path = process.cwd(),
-): Promise<void> {
-  await mkdir(path, { recursive: true });
-
-  return writeFile(resolve(path, `${filename}.tex`), text);
-}
-
 export async function convert(
   nodes: ChildNode[],
   {
-    autoGenImageNames = true,
+    autogenImageNames = true,
     includeDocumentWrapper = false,
     documentClass = 'article',
-    includePackages = [],
+    includedPackages = [],
     compilationDir,
     ignoreBreaks = true,
     preferDollarInlineMath = false,
@@ -299,7 +274,7 @@ export async function convert(
   if (includeDocumentWrapper) {
     doc.push(Template.docClass(documentClass));
 
-    if (includePackages.length > 0) doc.push(Template.usePackages(includePackages));
+    if (includedPackages.length > 0) doc.push(Template.usePackages(includedPackages));
 
     doc.push(Template.beginDocument({ title, includeDate, author }));
   }
@@ -309,7 +284,7 @@ export async function convert(
     ignoreBreaks,
     preferDollarInlineMath,
     skipWrappingEquations,
-    autoGenImageNames,
+    autogenImageNames,
     debug,
     imageWidth,
     imageHeight,
@@ -396,7 +371,7 @@ export async function convertText(
 
   return convert(root.childNodes, {
     ...options,
-    includePackages: options.includePackages || analyzeForPackageImports(htmlString),
+    includedPackages: options.includedPackages || analyzeForPackageImports(htmlString),
   });
 }
 

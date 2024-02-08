@@ -51,7 +51,7 @@ export function image(
     height,
     keepRatio,
     center = true,
-  }: { width?: number; height?: number; keepRatio?: boolean; center?: boolean } = {},
+  }: { width?: string; height?: string; keepRatio?: boolean; center?: boolean } = {},
 ): string {
   const line = ['\\includegraphics'];
   const options: string[] = [];
@@ -79,7 +79,7 @@ export function beginDocument({
   author?: string;
   includeDate?: boolean;
 }): string {
-  const beginningText = [];
+  const beginningText: string[] = [];
 
   if (title) beginningText.push(`\\title{${title}}`);
   if (author) beginningText.push(`\\author{${author}}`);
@@ -97,7 +97,7 @@ export const endDocument = newLinePrefix('\\end{document}');
 
 export const docClass = (className: string): string => `\\documentclass{${className}}`;
 
-export const escapeLatexSpecialChars = (specialCharacter: string): string => {
+export const latexSpecialCharacter = (specialCharacter: string): string => {
   const latexSpecialCharsMap: Record<string, string> = {
     '\\': '\\textbackslash{}',
     '{': '\\{',

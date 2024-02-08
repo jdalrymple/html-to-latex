@@ -1,102 +1,103 @@
 #!/usr/bin/env node
-/* eslint no-console: 0 */
-
-import program from 'sywac';
+import { program } from '@commander-js/extra-typings';
+import { readFileSync } from 'node:fs';
 import { convertFile } from './convert.mts';
+
+const pkgJSON = JSON.parse(readFileSync('../package.json').toString()) as Record<string, string>;
 
 // Add default settings
 program
-  .version('-v, --version')
-  .help('-h, --help')
-  .epilogue('Copyright 2024')
-  .command('convert-file', {
-    desc: 'Convert HTML to Latex',
-    setup: (args) => {
-      args
-        .positional('[--ifp] <input-file>', {
-          type: 'string',
-        })
-        .string('-ofp --output-file-path', {
-          group: 'Output Options',
-        })
-        .boolean('-ib --ignore-breaks', {
-          group: 'Parsing Options',
-          defaultValue: true,
-        })
-        .boolean('-dm --prefer-dollar-inline-math', {
-          group: 'Parsing Options',
-          defaultValue: false,
-        })
-        .boolean('-swe --skip-wrapping-equations', {
-          group: 'Parsing Options',
-          defaultValue: false,
-        })
-        .boolean('-dw --include-document-wrapper', {
-          group: 'Parsing Options',
-          defaultValue: false,
-        })
-        .string('-dc --document-class', {
-          group: 'Parsing Options',
-          defaultValue: 'article',
-        })
-        .array('-ip --include-packages', {
-          group: 'Parsing Options',
-        })
-        .string('-t --title', {
-          group: 'Parsing Options',
-        })
-        .string('-a --author', {
-          group: 'Parsing Options',
-        })
-        .boolean('-d --include-date', {
-          group: 'Parsing Options',
-        })
-        .string('-cdr --compilation-dir', {
-          group: 'Image Parsing Options',
-          default: process.cwd(),
-        })
-        .boolean('-ain --autogen-image-names', {
-          group: 'Image Parsing Options',
-          defaultValue: true,
-        })
-        .string('-iw --image-width', {
-          group: 'Image Parsing Options',
-        })
-        .string('-ih --image-height', {
-          group: 'Image Parsing Options',
-        })
-        .boolean('-kar --keep-image-aspect-ratio', {
-          group: 'Image Parsing Options',
-          default: false,
-        })
-        .boolean('--debug', {
-          group: 'Image Parsing Options',
-          defaultValue: false,
-        });
-    },
-    run: async (args) => {
-      await convertFile(args.ifp, {
-        outputFilePath: args.ofp,
-        autoGenImageNames: args.ain,
-        includeDocumentWrapper: args.dw,
-        documentClass: args.dc,
-        includePackages: args.ip,
-        compilationDir: args.cpr,
-        preferDollarInlineMath: args.dm,
-        skipWrappingEquations: args.swe,
-        debug: args.debug,
-        imageWidth: args.iw,
-        imageHeight: args.ih,
-        keepImageAspectRatio: args.kar,
-        title: args.t,
-        includeDate: args.d,
-        author: args.a,
-        ignoreBreaks: args.ib,
-      });
-    },
-  });
+  .name('html-to-latex')
+  .version(pkgJSON.version)
+  .command('convert-file')
+  .description('Converts a html file to a latex file')
+  .argument('<input-file-path>', 'The path to your html file')
+  .option('-ofp --output-file-path <output-file-path>', 'The output path to your latex file')
+  .option(
+    '-ib --ignore-breaks',
+    'Instead of replacing `<br/>` with //, ending the line, a simple space character is inserted instead.',
+    true,
+  )
+  .option('-dm --prefer-dollar-inline-math', 'Replace `(` and `)` with `$`.', false)
+  .option(
+    '-swe --skip-wrapping-equations',
+    'Is an equation is defined in a `p` tag without any other content besides that equation, it will automatically be wrapped in `[` and `]`.',
+    false,
+  )
+  .option(
+    '-dw --include-document-wrapper',
+    'Adds a document wrapper around the converted text: `documentclass{article} \begin{document} %converted text% end{document}`.',
+    false,
+  )
+  .option(
+    '-dc --document-class <document-class>',
+    'If a document wrapper is added, the document class will be set: `documentclass{article}`.',
+    'article',
+  )
+  .option(
+    '-ip --included-packages <included-packages...>',
+    'If a document wrapper is added, a list of used packages will be added via: `\\usepackage{packagename}`. If nothing is specified, the list of includes packages will be inferred from the html e.g cfrac => amsmath, img => graphicx, \therefore => amssymb',
+  )
+  .option(
+    '-t --title <title>',
+    'If a document wrapper is added, the title will be set: `\title{Altered Carbon}`.',
+  )
+  .option(
+    '-a --author <author>',
+    'If a document wrapper is added, the author will be set: `author{Takashi Kovacs}`.',
+  )
+  .option(
+    '-d --include-date',
+    'If a document wrapper is added, the current date will be: `date{\today}`.',
+    false,
+  )
+  .option(
+    '-cdr --compilation-dir <compilation-dir>',
+    "  If any images need to be downloaded for the latex compilation, they will be places in a 'images' subdirectory inside this directory.",
+    process.cwd(),
+  )
+  .option(
+    '-ain --autogen-image-names',
+    'To avoid any weird file names, image files that are downloaded are automatically given a random Id with the extension of the original file.',
+    true,
+  )
+  .option(
+    '-iw --image-width <image-width>',
+    'Allows you to set a image width. This would be in the form normally accepted by latex such as: `2cm`.',
+  )
+  .option(
+    '-ih --image-height <image-height>',
+    'Allows you to set a image height. This would be in the form normally accepted by latex such as: `2cm`.',
+  )
+  .option(
+    '-kar --keep-image-aspect-ratio',
+    'Allows you to maintain the aspect ratio of the image. This also requires either the image width property or image height property to be set.',
+    false,
+  )
+  .option(
+    '--debug',
+    'Prints error messages when they occur such as when an image cannot be found at the given url.',
+    false,
+  )
+  .action((inputFilePath, options) =>
+    convertFile(inputFilePath, {
+      outputFilePath: options.outputFilePath,
+      ignoreBreaks: options.ignoreBreaks,
+      preferDollarInlineMath: options.preferDollarInlineMath,
+      skipWrappingEquations: options.skipWrappingEquations,
+      includeDocumentWrapper: options.includeDocumentWrapper,
+      documentClass: options.documentClass,
+      includedPackages: options.includedPackages,
+      title: options.title,
+      author: options.author,
+      includeDate: options.includeDate,
+      compilationDir: options.compilationDir,
+      autogenImageNames: options.autogenImageNames,
+      imageWidth: options.imageWidth,
+      imageHeight: options.imageHeight,
+      keepImageAspectRatio: options.keepImageAspectRatio,
+      debug: options.debug,
+    }),
+  );
 
-// Parse input
-program.parse().then(({ output }) => {
-  console.log(output);
-});
+program.parse();
