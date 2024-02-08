@@ -33,7 +33,7 @@
 ## Features
 
 - **Universal** - Works in all modern browsers, [Node.js](https://nodejs.org/), and [Deno](https://deno.land/) and supports CLI usage.
-- **Zero Dependencies** - Absolutely no dependencies, keeping the package tiny (24kb).
+- **Tiny Size** - 12.5kb packed, 65.5kb unpacked.
 - **Tested** - Greater than 98% test coverage.
 - **Typed** - Out of the box TypeScript declarations.
 

@@ -13,7 +13,7 @@ jobs:
       - name: Package size report
         uses: pkg-size/action@v1
         with:
-          build-command: yarn build
+          build-command: pnpm build
           display-size: uncompressed, gzip
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
