@@ -1,10 +1,8 @@
 <h1 align="center" style="border-bottom: none;">HTML-to-Latex</h1>
 <p align="center">
-   <a href="https://github.com/jdalrymple/html-to-latex/actions/workflows/pipeline.yml"><img alt="pipeline status" src="https://github.com/jdalrymple/html-to-latex/actions/workflows/pipeline.yml/badge.svg"/></a>
-   <a href="https://codeclimate.com/github/jdalrymple/html-to-latex/test_coverage"><img alt="coverage report" src="https://api.codeclimate.com/v1/badges/e826c4088ed7bed3bae6/test_coverage" /></a>
-  <a href="https://codeclimate.com/github/jdalrymple/html-to-latex/maintainability">
-    <img src="https://api.codeclimate.com/v1/badges/e826c4088ed7bed3bae6/maintainability" alt="Code Climate maintainability">
-  </a>
+  <a href="https://github.com/jdalrymple/html-to-latex/actions/workflows/pipeline.yml"><img alt="pipeline status" src="https://github.com/jdalrymple/html-to-latex/actions/workflows/pipeline.yml/badge.svg"/></a>
+  <a href="https://codeclimate.com/github/jdalrymple/html-to-latex/test_coverage"><img src="https://api.codeclimate.com/v1/badges/c7b735f086fce0200e96/test_coverage" /></a>
+  <a href="https://codeclimate.com/github/jdalrymple/html-to-latex/maintainability"><img src="https://api.codeclimate.com/v1/badges/c7b735f086fce0200e96/maintainability" alt="Code Climate maintainability"> /></a>
   <a href="https://github.com/intuit/auto">
     <img src="https://img.shields.io/badge/release-auto.svg?colorA=888888&colorB=9B065A&label=auto" alt="Auto">
   </a>
