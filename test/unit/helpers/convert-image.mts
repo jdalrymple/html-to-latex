@@ -1,73 +1,13 @@
+import { expect, describe, test as it, vi } from 'vitest';
 import { PassThrough, Readable } from 'node:stream';
 import * as FS from 'node:fs';
 import type { WriteStream } from 'node:fs';
 import * as FSp from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as NanoId from 'nanoid';
-import { expect, describe, test as it, vi } from 'vitest';
-import { convertPlainText, convertImage } from '../../src/convert.mts';
-import type { ElementNode } from '../../src/convert.mjs';
-import * as Template from '../../src/templates.mjs';
-
-describe('convertPlainText', () => {
-  it('should standardize line breaks by removing multiples return chatacters and tabs', () => {
-    // New line character
-    const output1 = convertPlainText('\n');
-
-    expect(output1).toBe('\n\n');
-
-    // Carrage character
-    const output2 = convertPlainText('\r');
-
-    expect(output2).toBe('\n\n');
-
-    // Multiple return chatacters
-    const output3 = convertPlainText('\r\n\r\n\n');
-
-    expect(output3).toBe('\n\n');
-  });
-
-  it('should support skipping line break standardization', () => {
-    // New line character
-    const output1 = convertPlainText('\n', { ignoreBreaks: true });
-
-    expect(output1).toBe('');
-
-    // Carrage character
-    const output2 = convertPlainText('\r', { ignoreBreaks: true });
-
-    expect(output2).toBe('');
-
-    // Multiple return chatacters
-    const output3 = convertPlainText('\r\n\r\n\n', { ignoreBreaks: true });
-
-    expect(output3).toBe('');
-  });
-
-  it('should remove `\t`', () => {
-    const output = convertPlainText('Styled\tText');
-
-    expect(output).toBe('StyledText');
-  });
-
-  it('should escape special characters', () => {
-    const output = convertPlainText('% & # ~ < > |');
-
-    expect(output).toBe('\\% \\& \\# \\textasciitilde{} < > \\textbar{}');
-  });
-
-  it('should not inlining math equations by default', () => {
-    const output = convertPlainText(String.raw`\(3+2\)`);
-
-    expect(output).toBe(String.raw`\(3+2\)`);
-  });
-
-  it('should support inlining math equations through the $ latex character', () => {
-    const output = convertPlainText(String.raw`\(3+2\)`, { preferDollarInlineMath: true });
-
-    expect(output).toBe('$3+2$');
-  });
-});
+import { convertImage } from '../../../src/helpers/convert-image.mts';
+import type { ElementNode } from '../../../src/types.mts';
+import * as Template from '../../../src/templates.mts';
 
 describe('convertImage', () => {
   vi.mock('node:fs');

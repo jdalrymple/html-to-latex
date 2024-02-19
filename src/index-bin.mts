@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { program } from '@commander-js/extra-typings';
 import { readFileSync } from 'node:fs';
-import { convertFile } from './convert.mts';
+import { convertFile } from './helpers/convert-file.mts';
 
 const pkgJSON = JSON.parse(readFileSync('../package.json').toString()) as Record<string, string>;
 
