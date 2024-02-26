@@ -1,27 +1,45 @@
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
 
-export interface ConvertOptions {
+export type ConvertDocumentOptions = {
+  includePackages?: string[];
+  includeDocumentWrapper?: boolean;
+  documentClass?: string;
+  title?: string;
+  author?: string;
+  includeDate?: boolean;
+};
+
+export type ConvertInlineElementOptions = {
   preferDollarInlineMath?: boolean;
   ignoreBreaks?: boolean;
+};
+
+export type ConvertImageOptions = {
   compilationDir?: string;
-  skipWrappingEquations?: boolean;
   autogenImageNames?: boolean;
   debug?: boolean;
   imageWidth?: string;
   imageHeight?: string;
   keepImageAspectRatio?: boolean;
   centerImages?: boolean;
-  includedPackages?: string[];
-  includeDocumentWrapper?: boolean;
-  documentClass?: string;
-  title?: string;
-  author?: string;
-  includeDate?: boolean;
+};
+
+export interface ConvertParagraphOptions {
+  skipWrappingEquations?: boolean;
 }
 
-export interface ConvertFileOptions extends ConvertOptions {
+export type ConvertElementOptions = ConvertInlineElementOptions &
+  ConvertImageOptions &
+  ConvertParagraphOptions;
+
+export type ConvertOptions = ConvertDocumentOptions &
+  ConvertInlineElementOptions &
+  ConvertImageOptions &
+  ConvertParagraphOptions;
+
+export type ConvertFileOptions = ConvertOptions & {
   outputFilePath?: string;
-}
+};
 
 export type ElementNode = DefaultTreeAdapterMap['element'];
 

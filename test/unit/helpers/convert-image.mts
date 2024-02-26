@@ -31,20 +31,10 @@ describe('convertImage', () => {
     const imageTemplateSpy = vi.spyOn(Template, 'image');
 
     const node = { attrs: [{ name: 'src', value: 'test.jpg' }] } as ElementNode;
-    const output = await convertImage(node, {
-      imageHeight: '2cm',
-      imageWidth: '2cm',
-      keepImageAspectRatio: true,
-      centerImages: true,
-    });
+    const output = await convertImage(node);
 
-    expect(typeof output).toBe('string');
-    expect(imageTemplateSpy).toHaveBeenCalledWith('images/test.jpg', {
-      width: '2cm',
-      height: '2cm',
-      keepRatio: true,
-      center: true,
-    });
+    expect(output).toBe('\\begin{center}\n\t\\includegraphics{images/image.jpg}\n\\end{center}');
+    expect(imageTemplateSpy).toHaveBeenCalledWith('images/test.jpg');
   });
 
   it('should create a images directory if one does not exist', async () => {
@@ -164,7 +154,7 @@ describe('convertImage', () => {
     expect(typeof output).toBe('string');
   });
 
-  it('should houtput logs if debug flag is passed and an error occurs during the file download', async () => {
+  it('should output logs if debug flag is passed and an error occurs during the file download', async () => {
     const fetchError = new Error('Fetch Error');
 
     mockFetch.mockImplementationOnce(() => {
@@ -185,4 +175,113 @@ describe('convertImage', () => {
     expect(consoleMock).toHaveBeenCalledWith(fetchError);
     expect(consoleMock).toHaveBeenCalledWith('URL: http://test.com/image.jpg');
   });
+
+  it('should support setting the imageWidth', async () => {
+    mockFetch.mockResolvedValue({ body: Readable.from('hello') });
+    createWriteStreamMock.mockReturnValueOnce(mockWritable as unknown as WriteStream);
+    mkdirMock.mockImplementationOnce(() => Promise.resolve('done'));
+
+    const imageTemplateSpy = vi.spyOn(Template, 'image');
+
+    const node = { attrs: [{ name: 'src', value: 'test.jpg' }] } as ElementNode;
+    const output = await convertImage(node, {
+      imageWidth: '2cm',
+    });
+
+    expect(output).toBe(
+      '\\begin{center}\n\t\\includegraphics[width=2cm]{images/image.jpg}\n\\end{center}',
+    );
+    expect(imageTemplateSpy).toHaveBeenCalledWith('images/test.jpg', {
+      width: '2cm',
+    });
+  });
+
+  it('should support setting the imageHeight', async () => {
+    mockFetch.mockResolvedValue({ body: Readable.from('hello') });
+    createWriteStreamMock.mockReturnValueOnce(mockWritable as unknown as WriteStream);
+    mkdirMock.mockImplementationOnce(() => Promise.resolve('done'));
+
+    const imageTemplateSpy = vi.spyOn(Template, 'image');
+
+    const node = { attrs: [{ name: 'src', value: 'test.jpg' }] } as ElementNode;
+    const output = await convertImage(node, {
+      imageHeight: '2cm',
+    });
+
+    expect(output).toBe(
+      '\\begin{center}\n\t\\includegraphics[height=2cm]{images/image.jpg}\n\\end{center}',
+    );
+    expect(imageTemplateSpy).toHaveBeenCalledWith('images/test.jpg', {
+      height: '2cm',
+    });
+  });
+
+  it('should support setting the keepImageAspectRatio flag', async () => {
+    mockFetch.mockResolvedValue({ body: Readable.from('hello') });
+    createWriteStreamMock.mockReturnValueOnce(mockWritable as unknown as WriteStream);
+    mkdirMock.mockImplementationOnce(() => Promise.resolve('done'));
+
+    const imageTemplateSpy = vi.spyOn(Template, 'image');
+
+    const node = { attrs: [{ name: 'src', value: 'test.jpg' }] } as ElementNode;
+    const output = await convertImage(node, {
+      imageHeight: '2cm',
+      keepImageAspectRatio: true,
+    });
+
+    expect(output).toBe(
+      '\\begin{center}\n\t\\includegraphics[height=2cm,keepaspectratio]{images/image.jpg}\n\\end{center}',
+    );
+    expect(imageTemplateSpy).toHaveBeenCalledWith('images/test.jpg', {
+      keepImageAspectRatio: true,
+    });
+  });
+
+  it('should ignore keepAspectRatio flag if width or height values are not passed', async () => {
+    mockFetch.mockResolvedValue({ body: Readable.from('hello') });
+    createWriteStreamMock.mockReturnValueOnce(mockWritable as unknown as WriteStream);
+    mkdirMock.mockImplementationOnce(() => Promise.resolve('done'));
+
+    const imageTemplateSpy = vi.spyOn(Template, 'image');
+
+    const node = { attrs: [{ name: 'src', value: 'test.jpg' }] } as ElementNode;
+    const output = await convertImage(node, {
+      keepImageAspectRatio: true,
+    });
+
+    expect(output).toBe('\\begin{center}\n\t\\includegraphics{images/image.jpg}\n\\end{center}');
+    expect(imageTemplateSpy).toHaveBeenCalledWith('images/test.jpg', {
+      keepImageAspectRatio: true,
+    });
+  });
+
+  it('should support setting the centerImages flag', async () => {
+    mockFetch.mockResolvedValue({ body: Readable.from('hello') });
+    createWriteStreamMock.mockReturnValueOnce(mockWritable as unknown as WriteStream);
+    mkdirMock.mockImplementationOnce(() => Promise.resolve('done'));
+
+    const imageTemplateSpy = vi.spyOn(Template, 'image');
+
+    const node = { attrs: [{ name: 'src', value: 'test.jpg' }] } as ElementNode;
+    const output = await convertImage(node, {
+      centerImages: false,
+    });
+
+    expect(output).toBe('\\includegraphics{images/image.jpg}');
+    expect(imageTemplateSpy).toHaveBeenCalledWith('images/test.jpg', {
+      centerImages: false,
+    });
+  });
+
+  // it('should convert wrapped img tag', async () => {
+  //   const spy = jest.spyOn(ShortId, 'generate');
+  //   spy.mockImplementation(() => 'image2');
+
+  //   const html = `<p><img src="image.png"/></p>`;
+  //   const tex = await convertText(html);
+
+  //   expect(tex).toBe('\\begin{center}\n\t\\includegraphics{images/image2.png}\n\\end{center}');
+
+  //   spy.mockClear();
+  // });
 });

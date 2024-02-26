@@ -1,8 +1,15 @@
 import { convertInlineElement } from './convert-inline-element.mts';
 import * as Template from '../templates.mts';
-import type { ConvertOptions, ElementNode } from '../types.mts';
+import type {
+  ConvertInlineElementOptions,
+  ConvertParagraphOptions,
+  ElementNode,
+} from '../types.mts';
 
-export function convertParagraph(node: ElementNode, options: ConvertOptions = {}): string {
+export function convertParagraph(
+  node: ElementNode,
+  options: ConvertParagraphOptions & ConvertInlineElementOptions = {},
+): string {
   const convertedInlineText = convertInlineElement(node, options);
   const trimmed = convertedInlineText.trim();
 

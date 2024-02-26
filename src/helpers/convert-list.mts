@@ -1,15 +1,13 @@
-import { convertBlockElement } from './convert-block-element.mts';
+import { convertElement } from './convert-element.mts';
 import * as Template from '../templates.mts';
-import type { ConvertOptions, ElementNode } from '../types.mts';
+import type { ConvertElementOptions, ElementNode } from '../types.mts';
 
 export async function convertList(
   node: ElementNode,
-  options: ConvertOptions = {},
+  options: ConvertElementOptions = {},
 ): Promise<string> {
   const filtered = node.childNodes.filter(({ nodeName }) => nodeName === 'li');
-  const texts = await Promise.all(
-    filtered.map((f) => convertBlockElement([f], { ...options, includeDocumentWrapper: false })),
-  );
+  const texts = await Promise.all(filtered.map((f) => convertElement(f, options)));
 
   return texts.map(Template.item).join('\n');
 }

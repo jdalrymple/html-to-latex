@@ -28,7 +28,7 @@ export const subscript = (text: string): string => `$_{${text}}$`;
 
 export const hyperlink = (text: string, url: string): string => `\\href{${url}}{${text}}`;
 
-export const divider = newLineSuffix('\\hrule');
+export const divider = () => newLineSuffix('\\hrule');
 
 export const enumerate = (text: string): string => `\\begin{enumerate}\n${text}\n\\end{enumerate}`;
 
@@ -114,3 +114,5 @@ export const latexSpecialCharacter = (specialCharacter: string): string => {
 
   return latexSpecialCharsMap[specialCharacter] || specialCharacter;
 };
+
+export const blockSeperator = '\n\n';

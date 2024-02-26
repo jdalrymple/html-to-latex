@@ -1,8 +1,11 @@
 import { convertPlainText } from './convert-plain-text.mts';
 import * as Template from '../templates.mts';
-import type { Attribute, ChildNode, ConvertOptions, TextNode } from '../types.mts';
+import type { Attribute, ChildNode, ConvertInlineElementOptions, TextNode } from '../types.mts';
 
-export function convertInlineElement(node: ChildNode, options: ConvertOptions = {}): string {
+export function convertInlineElement(
+  node: ChildNode,
+  options: ConvertInlineElementOptions = {},
+): string {
   // If this block has children, call fn on its child and obtain its value
   const innerText =
     'childNodes' in node && node.childNodes.length > 0
