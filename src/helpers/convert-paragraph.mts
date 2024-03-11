@@ -8,14 +8,14 @@ import type {
 
 export function convertParagraph(
   node: ElementNode,
-  options: ConvertParagraphOptions & ConvertInlineElementOptions = {},
+  options?: ConvertParagraphOptions & ConvertInlineElementOptions,
 ): string {
   const convertedInlineText = convertInlineElement(node, options);
   const trimmed = convertedInlineText.trim();
 
   // Check if text is only an equation. If so, switch \( \) & $ $, for \[ \]
   if (
-    !options.skipWrappingEquations &&
+    !options?.skipWrappingEquations &&
     trimmed.match(/^(\$|\\\()/) &&
     trimmed.match(/(\\\)|\$)$/)
   ) {

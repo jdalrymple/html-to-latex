@@ -24,9 +24,9 @@ export type ConvertImageOptions = {
   centerImages?: boolean;
 };
 
-export interface ConvertParagraphOptions {
+export type ConvertParagraphOptions = {
   skipWrappingEquations?: boolean;
-}
+};
 
 export type ConvertElementOptions = ConvertInlineElementOptions &
   ConvertImageOptions &

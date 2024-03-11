@@ -67,7 +67,7 @@ export function image(
 }
 
 export function usePackages(packageNames: string[]): string {
-  return newLineSuffix(packageNames.map((n) => `\\usepackage{${n}}`).join('\n'));
+  return packageNames.map((n) => `\\usepackage{${n}}`).join('\n');
 }
 
 export function beginDocument({
@@ -90,10 +90,10 @@ export function beginDocument({
 
   if (title) beginningText.push(newLinePrefix('\\maketitle'));
 
-  return beginningText.join('\n');
+  return newLineSuffix(beginningText.join('\n'));
 }
 
-export const endDocument = newLinePrefix('\\end{document}');
+export const endDocument = () => newLinePrefix('\\end{document}');
 
 export const docClass = (className: string): string => `\\documentclass{${className}}`;
 

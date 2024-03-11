@@ -1,128 +1,136 @@
 import { parseFragment } from 'parse5';
-import { expect, describe, test as it, vi } from 'vitest';
+import { expect, test as it, vi } from 'vitest';
 import * as Template from '../../../src/templates.mts';
 import { convertInlineElement } from '../../../src/helpers/convert-inline-element.mts';
 import * as convertPlainTextUtils from '../../../src/helpers/convert-plain-text.mts';
 
-describe('convertInlineText', () => {
-  it('should handle pure text by calling the convertPlainText function', () => {
-    const convertPlainTextSpy = vi.spyOn(convertPlainTextUtils, 'convertPlainText');
+it('should handle pure text by calling the convertPlainText function', () => {
+  const convertPlainTextSpy = vi.spyOn(convertPlainTextUtils, 'convertPlainText');
 
-    const node = parseFragment('<span>test</span>');
-    const converted = convertInlineElement(node.childNodes[0]);
+  const node = parseFragment('<span>test</span>');
+  const converted = convertInlineElement(node.childNodes[0]);
 
-    // Roundabout way to test this since spying on a direct function isnt doable nicely
-    expect(convertPlainTextSpy).toHaveBeenCalledWith('test', {});
-    expect(converted).toBe('test');
+  // Roundabout way to test this since spying on a direct function isnt doable nicely
+  expect(convertPlainTextSpy).toHaveBeenCalledWith('test', {
+    ignoreBreaks: true,
   });
+  expect(converted).toBe('test');
+});
 
-  it('should handle bold tags by calling the bold template', () => {
-    const templateSpy = vi.spyOn(Template, 'bold');
+it('should handle bold tags by calling the bold template', () => {
+  const templateSpy = vi.spyOn(Template, 'bold');
 
-    const nodes = [
-      parseFragment('<span><b>test</b></span>'),
-      parseFragment('<span><strong>test</strong></span>'),
-    ];
+  const nodes = [
+    parseFragment('<span><b>test</b></span>'),
+    parseFragment('<span><strong>test</strong></span>'),
+  ];
 
-    nodes.forEach((n) => {
-      convertInlineElement(n.childNodes[0]);
-      expect(templateSpy).toHaveBeenCalledWith('test');
-    });
-  });
-
-  it('should handle italic tags by calling the italic template', () => {
-    const templateSpy = vi.spyOn(Template, 'italic');
-
-    const nodes = [
-      parseFragment('<span><i>test</i></span>'),
-      parseFragment('<span><em>test</em></span>'),
-    ];
-
-    nodes.forEach((n) => {
-      convertInlineElement(n.childNodes[0]);
-      expect(templateSpy).toHaveBeenCalledWith('test');
-    });
-  });
-
-  it('should handle underline tags by calling the underline template', () => {
-    const templateSpy = vi.spyOn(Template, 'underline');
-
-    const node = parseFragment('<span><u>test</u></span>');
-
-    convertInlineElement(node.childNodes[0]);
-
+  nodes.forEach((n) => {
+    convertInlineElement(n.childNodes[0]);
     expect(templateSpy).toHaveBeenCalledWith('test');
   });
+});
 
-  it('should handle strikethrough tags by calling the strikethrough template', () => {
-    const templateSpy = vi.spyOn(Template, 'strikethrough');
+it('should handle italic tags by calling the italic template', () => {
+  const templateSpy = vi.spyOn(Template, 'italic');
 
-    const node = parseFragment('<span><s>test</s></span>');
+  const nodes = [
+    parseFragment('<span><i>test</i></span>'),
+    parseFragment('<span><em>test</em></span>'),
+  ];
 
-    convertInlineElement(node.childNodes[0]);
-
+  nodes.forEach((n) => {
+    convertInlineElement(n.childNodes[0]);
     expect(templateSpy).toHaveBeenCalledWith('test');
   });
+});
 
-  it('should handle subscript tags by calling the subscript template', () => {
-    const templateSpy = vi.spyOn(Template, 'subscript');
+it('should handle underline tags by calling the underline template', () => {
+  const templateSpy = vi.spyOn(Template, 'underline');
 
-    const node = parseFragment('<span><sub>test</sub></span>');
+  const node = parseFragment('<span><u>test</u></span>');
 
-    convertInlineElement(node.childNodes[0]);
+  convertInlineElement(node.childNodes[0]);
 
-    expect(templateSpy).toHaveBeenCalledWith('test');
-  });
+  expect(templateSpy).toHaveBeenCalledWith('test');
+});
 
-  it('should handle superscript tags by calling the superscript template', () => {
-    const templateSpy = vi.spyOn(Template, 'superscript');
+it('should handle strikethrough tags by calling the strikethrough template', () => {
+  const templateSpy = vi.spyOn(Template, 'strikethrough');
 
-    const node = parseFragment('<span><sup>test</sup></span>');
+  const node = parseFragment('<span><s>test</s></span>');
 
-    convertInlineElement(node.childNodes[0]);
+  convertInlineElement(node.childNodes[0]);
 
-    expect(templateSpy).toHaveBeenCalledWith('test');
-  });
+  expect(templateSpy).toHaveBeenCalledWith('test');
+});
 
-  it('should handle anchor tags by calling the hyperlink template', () => {
-    const templateSpy = vi.spyOn(Template, 'hyperlink');
+it('should handle subscript tags by calling the subscript template', () => {
+  const templateSpy = vi.spyOn(Template, 'subscript');
 
-    const node = parseFragment('<span><a href="url">test</a></span>');
+  const node = parseFragment('<span><sub>test</sub></span>');
 
-    convertInlineElement(node.childNodes[0]);
+  convertInlineElement(node.childNodes[0]);
 
-    expect(templateSpy).toHaveBeenCalledWith('test', 'url');
-  });
+  expect(templateSpy).toHaveBeenCalledWith('test');
+});
 
-  it('should handle break tags by inserting double new lines', () => {
-    const node = parseFragment('<span><br>test</span>');
+it('should handle superscript tags by calling the superscript template', () => {
+  const templateSpy = vi.spyOn(Template, 'superscript');
 
-    const converted = convertInlineElement(node.childNodes[0]);
+  const node = parseFragment('<span><sup>test</sup></span>');
 
-    expect(converted).toBe('\n\ntest');
-  });
+  convertInlineElement(node.childNodes[0]);
 
-  it('should skip break tags if the ignoreBreaks option is passed', () => {
-    const node = parseFragment('<span><br>test</span>');
+  expect(templateSpy).toHaveBeenCalledWith('test');
+});
 
-    const converted = convertInlineElement(node.childNodes[0], { ignoreBreaks: true });
+it('should handle anchor tags by calling the hyperlink template', () => {
+  const templateSpy = vi.spyOn(Template, 'hyperlink');
 
-    expect(converted).toBe(' test');
-  });
+  const node = parseFragment('<span><a href="url">test</a></span>');
 
-  it('should return an empty string if no tags are matched', () => {
-    const node = parseFragment('<span><unknown></unknown></span>');
+  convertInlineElement(node.childNodes[0]);
 
-    const converted = convertInlineElement(node.childNodes[0]);
+  expect(templateSpy).toHaveBeenCalledWith('test', 'url');
+});
 
-    expect(converted).toBe('');
-  });
+it('should handle break tags by inserting double new lines', () => {
+  const node = parseFragment('<span><br>test</span>');
 
-  it('should handle multiple nested tags', () => {
-    const node = parseFragment('<span><b>One</b><span><i>Two</i></span></span>');
+  const converted = convertInlineElement(node.childNodes[0], { ignoreBreaks: false });
 
-    const converted = convertInlineElement(node.childNodes[0]);
+  expect(converted).toBe('\n\ntest');
+});
 
-    expect(converted).toBe('\\textbf{One}\\textit{Two}');
-  });
+it('should skip break tags if the ignoreBreaks option is passed', () => {
+  const node = parseFragment('<span><br>test</span>');
+
+  const converted = convertInlineElement(node.childNodes[0], { ignoreBreaks: true });
+
+  expect(converted).toBe(' test');
+});
+
+it('should skip break tags by default', () => {
+  const node = parseFragment('<span><br>test</span>');
+
+  const converted = convertInlineElement(node.childNodes[0]);
+
+  expect(converted).toBe(' test');
+});
+
+it('should return an empty string if no tags are matched', () => {
+  const node = parseFragment('<span><unknown></unknown></span>');
+
+  const converted = convertInlineElement(node.childNodes[0]);
+
+  expect(converted).toBe('');
+});
+
+it('should handle multiple nested tags', () => {
+  const node = parseFragment('<span><b>One</b><span><i>Two</i></span></span>');
+
+  const converted = convertInlineElement(node.childNodes[0]);
+
+  expect(converted).toBe('\\textbf{One}\\textit{Two}');
 });

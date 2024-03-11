@@ -2,7 +2,7 @@ import { convertList } from './convert-list.mts';
 import * as Template from '../templates.mts';
 import type { ConvertOptions, ElementNode } from '../types.mts';
 
-export async function convertOrderedLists(
+export async function convertOrderedList(
   node: ElementNode,
   options: ConvertOptions = {},
 ): Promise<string> {

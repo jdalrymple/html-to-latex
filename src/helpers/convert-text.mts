@@ -17,7 +17,7 @@ export async function convertText(
   }: ConvertOptions = {},
 ): Promise<string> {
   const root = parseFragment(htmlString);
-  const doc: (Promise<string> | string)[] = [];
+  const doc: (Promise<string> | string | null)[] = [];
 
   if (includeDocumentWrapper) {
     doc.push(Template.docClass(documentClass));
@@ -25,7 +25,7 @@ export async function convertText(
     const packageImports =
       includePackages.length > 0 ? includePackages : convertPackageImports(htmlString);
 
-    doc.push(Template.usePackages(packageImports));
+    if (packageImports.length > 0) doc.push(Template.usePackages(packageImports));
 
     doc.push(Template.beginDocument({ title, includeDate, author }));
   }
@@ -38,7 +38,7 @@ export async function convertText(
   doc.push(...convertedElements.filter(Boolean));
 
   // Add document wrapper if configuration is set
-  if (includeDocumentWrapper) doc.push(Template.endDocument);
+  if (includeDocumentWrapper) doc.push(Template.endDocument());
 
   const converted = await Promise.all(doc);
 

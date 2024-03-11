@@ -11,3 +11,4 @@ export * from './convert-paragraph.mts';
 export * from './convert-plain-text.mts';
 export * from './convert-table-row.mts';
 export * from './convert-table.mts';
+export * from './convert-text.mts';

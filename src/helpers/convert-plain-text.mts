@@ -1,9 +1,10 @@
 import { decodeHTML } from 'entities';
+import { ConvertInlineElementOptions } from '../types.mts';
 import * as Template from '../templates.mts';
 
 export function convertPlainText(
   inputText: string,
-  { ignoreBreaks = true, preferDollarInlineMath = false } = {},
+  { ignoreBreaks = true, preferDollarInlineMath = false }: ConvertInlineElementOptions = {},
 ): string {
   const breakReplacement = ignoreBreaks ? '' : '\n\n';
   const cleanText = inputText

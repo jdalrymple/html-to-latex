@@ -4,17 +4,18 @@ import type { Attribute, ChildNode, ConvertInlineElementOptions, TextNode } from
 
 export function convertInlineElement(
   node: ChildNode,
-  options: ConvertInlineElementOptions = {},
+  { ignoreBreaks = true, ...options }: ConvertInlineElementOptions = {},
 ): string {
+  const opts = { ignoreBreaks, ...options };
   // If this block has children, call fn on its child and obtain its value
   const innerText =
     'childNodes' in node && node.childNodes.length > 0
-      ? node.childNodes.map((n) => convertInlineElement(n, options)).join('')
+      ? node.childNodes.map((n) => convertInlineElement(n, opts)).join('')
       : '';
 
   switch (node.nodeName) {
     case '#text':
-      return convertPlainText((node as unknown as TextNode).value, options);
+      return convertPlainText((node as unknown as TextNode).value, opts);
     case 'b':
     case 'strong':
       return Template.bold(innerText);
@@ -30,7 +31,7 @@ export function convertInlineElement(
     case 'sup':
       return Template.superscript(innerText);
     case 'br':
-      return options.ignoreBreaks ? ' ' : '\n\n';
+      return ignoreBreaks ? ' ' : '\n\n';
     case 'a':
       return Template.hyperlink(
         innerText,

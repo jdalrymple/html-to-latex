@@ -12,16 +12,19 @@ export async function convertImage(
   node: ElementNode,
   {
     compilationDir = process.cwd(),
-    autogenImageNames = true,
+    autogenImageNames = false,
     debug = false,
     imageWidth,
     imageHeight,
     keepImageAspectRatio,
     centerImages,
   } = {} as ConvertImageOptions,
-): Promise<string> {
+): Promise<string | null> {
+  const origPath = (node.attrs.find(({ name }) => name === 'src') as Attribute)?.value;
+
+  if (!origPath) return null;
+
   const imagesDir = resolve(compilationDir, 'images');
-  const origPath = (node.attrs.find(({ name }) => name === 'src') as Attribute).value;
   const ext = extname(origPath) || '.jpg';
   const base = autogenImageNames ? `${generateId()}${ext}` : basename(origPath);
   const localPath = resolve(imagesDir, base);

@@ -35,7 +35,7 @@ program
     'article',
   )
   .option(
-    '-ip --included-packages <included-packages...>',
+    '-ip --include-packages <include-packages...>',
     'If a document wrapper is added, a list of used packages will be added via: `\\usepackage{packagename}`. If nothing is specified, the list of includes packages will be inferred from the html e.g cfrac => amsmath, img => graphicx, \therefore => amssymb',
   )
   .option(
@@ -87,7 +87,7 @@ program
       skipWrappingEquations: options.skipWrappingEquations,
       includeDocumentWrapper: options.includeDocumentWrapper,
       documentClass: options.documentClass,
-      includedPackages: options.includedPackages,
+      includePackages: options.includePackages,
       title: options.title,
       author: options.author,
       includeDate: options.includeDate,
