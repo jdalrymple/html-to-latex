@@ -1,29 +1,53 @@
 env:
   node: true
-  jest/globals: true
 
 extends:
   - airbnb-base
+  - plugin:@typescript-eslint/recommended-requiring-type-checking
   - plugin:prettier/recommended
-  - plugin:jest/recommended
+
+parser: '@typescript-eslint/parser'
+
+parserOptions:
+  project:
+    - './tsconfig.json'
 
 ignorePatterns:
   - node_modules/
   - dist/
-  - '**/rollup.config.js'
 
 plugins:
+  - '@typescript-eslint'
+  - prettier
   - import
 
 rules:
-  import/prefer-default-export: off
-  import/extensions:
+  no-console:
     - error
-    - never
-    - json: always
+    - allow:
+        - debug
+
+  no-use-before-define:
+    - error
+    - functions: false
+      classes: false
+
+  import/prefer-default-export: off
+
+  sort-imports:
+    - error
+    - ignoreCase: false
+      ignoreDeclarationSort: true
+      ignoreMemberSort: false
+      memberSyntaxSortOrder:
+        - none
+        - all
+        - multiple
+        - single
+      allowSeparatedGroups: true
 
 settings:
   import/resolver:
+    typescript:
     node:
-      extensions:
-        - .js
+      extensions: ['.mjs', '.cjs', '.js', '.jsx', '.json', '.mts', '.cts', '.ts', '.tsx', '.d.ts']
